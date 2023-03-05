@@ -1,0 +1,52 @@
+@page "/Browse"
+@inject NavigationManager NavigationManager
+<h1>Browse</h1>
+
+<p role="status">Current count: @currentCount</p>
+<p role="status">Current response: @response</p>
+<button class="btn btn-primary" href="" @onclick="IncrementCount">Click me</button>
+
+
+<div class="fixed-bottom">
+<div class="container-fluid">
+        <div class="row">
+            <div class="col-3"></div>
+            <div class="col-8">
+                <p></p>
+                Loading Blazor WebAssembly...
+                <br />
+                <div class="progress">
+                    <div id="progressbar" class="progress-bar progress-bar-striped active" role="progressbar" style="width:@width"></div>
+                </div>
+            </div>
+            <div class="col-2"></div>
+        </div>
+</div>
+<p></p>
+              
+<br />
+</div>
+<ul class="flex-container">
+    @foreach(var file in filesInReliase)
+    {
+        if (file.URL_PNG_3_2 != null)
+            {
+            string a = $"background-image:url(\"{file.URL_PNG_3_2}\")";
+            <li class="flex-item" style=@a >1</li>
+            }
+    }
+</ul>
+
+@code {
+    private int currentCount = 0;
+    private string response ="null";
+    private string width = "";
+    private List<string> imageSource=new();
+    private List<FilesInReliase> filesInReliase = TorrentDownloader.GetInfoReliases();
+    private void IncrementCount()
+    {
+        Global.MaxNumberOfItems++;
+        width = "50%";
+        currentCount = Global.MaxNumberOfItems;
+    }
+}
