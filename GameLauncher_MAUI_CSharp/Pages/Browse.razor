@@ -1,5 +1,8 @@
 @page "/Browse"
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime;
+@inject HttpClient Http
+
 <h1>Browse</h1>
 
 <p role="status">Current count: @currentCount</p>
@@ -27,26 +30,85 @@
 <br />
 </div>
 <ul class="flex-container">
-    @foreach(var file in filesInReliase)
+    @foreach (var project in filesInReliase)
     {
+        var file = project.FirstOrDefault();
+
         if (file.URL_PNG_3_2 != null)
             {
-            string a = $"background-image:url(\"{file.URL_PNG_3_2}\")";
-            <li class="flex-item" style=@a >1</li>
-            }
+            /* string a = $"background-image:url(\"{file.URL_PNG_3_2}\")";*/
+            /* style =@ a*/
+            string boxid = file.URL_PNG_3_2 + "_BOX";
+            <li class="box" id=@boxid style="opacity:1;">
+                <canvas id=@file.URL_PNG_3_2 style="border-radius:5px; margin: 0px;
+    width: 200px;
+    height: 300px;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    position: center;
+opacity:1"> </canvas>
+           
+            </li>
+
+    
+        }
     }
 </ul>
-
+    
 @code {
     private int currentCount = 0;
     private string response ="null";
     private string width = "";
     private List<string> imageSource=new();
-    private List<FilesInReliase> filesInReliase = TorrentDownloader.GetInfoReliases();
+    private List<List<FilesInReliase>> filesInReliase = TorrentDownloader.GetInfoReliases();
+
     private void IncrementCount()
     {
         Global.MaxNumberOfItems++;
         width = "50%";
         currentCount = Global.MaxNumberOfItems;
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        StateHasChanged();
+
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            foreach (var project in filesInReliase)
+            {
+                var file = project.FirstOrDefault();
+                if (file.URL_PNG_3_2 != null)
+                {
+                    await SetImageAsync(file.URL_PNG_3_2, file.URL_PNG_3_2);
+                }
+            }
+        }
+    }
+    private async Task<Stream> GetImageStreamAsync(string ImageURL)
+    {
+        return await Http.GetStreamAsync(
+            ImageURL);
+    }
+
+    private async Task SetImageAsync(string ImageURL, string id)
+    {
+
+        var imageStream = await GetImageStreamAsync(ImageURL);
+        var dotnetImageStream = new DotNetStreamReference(imageStream);
+        await JsRuntime.InvokeVoidAsync("setImage3", id, dotnetImageStream);
+        await Task.Delay(6000);
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("eval", new object[] {
+            $"document.getElementById(\"{id}_BOX\").style.animation = \"anime 3s cubic-bezier(0.16, 1, 0.3, 1) 1s alternate\" " });
+        }
+        catch
+        {
+            
+        }
     }
 }

@@ -1,5 +1,20 @@
 ﻿using Microsoft.AspNetCore.Components.WebView.Maui;
 using GameLauncher_MAUI_CSharp.Data;
+using System.Net.Http;
+using Microsoft.Maui.LifecycleEvents;
+using Microsoft.Maui.Platform;
+using Microsoft.Maui.Controls.Xaml;
+
+
+
+#if WINDOWS
+using Colors = Microsoft.UI.Colors;
+using Microsoft.UI;
+using Microsoft.UI.Windowing;
+using Windows.Graphics;
+using Windows.UI.ViewManagement;
+#endif
+
 
 namespace GameLauncher_MAUI_CSharp;
 
@@ -7,6 +22,7 @@ public static class MauiProgram
 {
 	public static MauiApp CreateMauiApp()
 	{
+		
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
@@ -16,8 +32,62 @@ public static class MauiProgram
 			});
 
 		builder.Services.AddMauiBlazorWebView();
-		#if DEBUG
-		builder.Services.AddBlazorWebViewDeveloperTools();
+        builder.Services.AddSingleton<HttpClient>();
+ builder.ConfigureLifecycleEvents(events =>
+         {
+
+ #if WINDOWS10_0_19041_0_OR_GREATER
+             events.AddWindows(wndLifeCycleBuilder =>
+             {                
+                 wndLifeCycleBuilder.OnWindowCreated(window =>
+                 {
+                     IntPtr nativeWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                     WindowId nativeWindowId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
+                     var uiSettings = new Windows.UI.ViewManagement.UISettings();
+                     var color = uiSettings.GetColorValue(UIColorType.Accent);
+                     AppWindow appWindow = AppWindow.GetFromWindowId(nativeWindowId);
+                     var presenter = appWindow.Presenter as OverlappedPresenter;
+                     /* window.ExtendsContentIntoTitleBar = true;
+                      presenter.IsMaximizable = false;
+                      presenter.IsMinimizable = false;
+                      presenter.IsAlwaysOnTop = true;
+                      presenter.IsResizable = true;
+
+
+                      var titleBar = appWindow.TitleBar;
+                      appWindow.TitleBar.BackgroundColor = color;
+                      titleBar.ForegroundColor = Colors.White;
+                      titleBar.BackgroundColor = Colors.Green;
+                      titleBar.ButtonForegroundColor = Colors.White;
+                      titleBar.ButtonBackgroundColor = Colors.SeaGreen;
+                      titleBar.ButtonHoverForegroundColor = Colors.Gainsboro;
+                      titleBar.ButtonHoverBackgroundColor = Colors.DarkSeaGreen;
+                      titleBar.ButtonPressedForegroundColor = Colors.Gray;
+                      titleBar.ButtonPressedBackgroundColor = Colors.LightGreen;
+
+                      // Set inactive window colors
+                      titleBar.InactiveForegroundColor = Colors.Gainsboro;
+                      titleBar.InactiveBackgroundColor = Colors.SeaGreen;
+                      titleBar.ButtonInactiveForegroundColor = Colors.Gainsboro;
+                      titleBar.ButtonInactiveBackgroundColor = Colors.SeaGreen;
+                      presenter.SetBorderAndTitleBar(false, false);*/
+
+
+
+                     window.Title = "Aboba Launcher";
+                     
+
+                     //  ResizeMode = "CanResizeWithGrip" AllowsTransparency = "True"
+                     //window.CenterOnScreen(400, 750);
+                     //p.SetBorderAndTitleBar(false, false);
+                });
+            });
+#endif
+        });
+
+
+#if DEBUG
+        builder.Services.AddBlazorWebViewDeveloperTools();
 #endif
 		
 		builder.Services.AddSingleton<WeatherForecastService>();

@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 	<title>GameLauncher_MAUI_CSharp</title>
 	<base href="/" />
-	<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+	<link rel="stylesheet" href="css/bootstrap/bootstrap.css" />
 	<link href="css/app.css" rel="stylesheet" />
 	<link href="GameLauncher_MAUI_CSharp.styles.css" rel="stylesheet" />
-</head>
+	</head>
 
 <body>
 
@@ -23,6 +23,30 @@
 	</div>
 
 	<script src="_framework/blazor.webview.js" autostart="false"></script>
+	<script>
+		window.setImage3 = async (imageElementId, imageStream) => {
+			try {
+				const arrayBuffer = await imageStream.arrayBuffer();
+				console.log(arrayBuffer);
+				const blob = new Blob([arrayBuffer]);
+				console.log(blob);
+
+				var canvas = document.getElementById(imageElementId);
+				var ctx = canvas.getContext("2d");
+				ctx.canvas.width = 200;
+				ctx.canvas.height = 300;
+				//ctx.translate(0.3, 0.3);
+				ctx.imageSmoothingEnabled = true;
+				Promise.all([
+					createImageBitmap(blob, { resizeHeight: 300, resizeWidth: 200, resizeQuality: "high" })
+				]).then((sprites) => {
+					ctx.drawImage(sprites[0], 0, 0);
+				});
+			}
+			catch { }
+
+		}
+	</script>
 
 </body>
 

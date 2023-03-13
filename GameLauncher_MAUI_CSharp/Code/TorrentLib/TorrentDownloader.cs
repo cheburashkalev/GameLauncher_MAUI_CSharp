@@ -19,7 +19,11 @@ using Octokit;
 
 namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
 {
-    public struct FilesInReliase
+    public struct Project
+    {
+        List<FilesInReliase> filesInReliases; 
+    }
+        public struct FilesInReliase
     {
         public string FullGameZIP;
         public ulong SizeFullGameZIP;
@@ -45,10 +49,41 @@ namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
 
 
         }
-        public static List<FilesInReliase> GetInfoReliases() 
+        public static bool UserValid(string user) 
         {
+            try
+            {
+                var result = client.User.Get(user);
+                result.Wait();
+                return true;
+            }
+            catch 
+            {
+                return false;
+            }
+           
+        }
+        public static bool RepValid(string user, string rep)
+        {
+            try
+            {
+                var result = client.Repository.Get(user,rep);
+                result.Wait();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+
+        }
+        public static List<List<FilesInReliase>> GetInfoReliases() 
+        {
+            List<List<FilesInReliase>> Projects = new();
+            //foreach()
             var releases = client.Repository.Release.GetAll("cheburashkalev", "testRepForLaucherFlax");
             releases.Wait();
+
             List<FilesInReliase> filesInReliase_s = new();
             foreach (var release in releases.Result)
             {
@@ -81,9 +116,9 @@ namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
                   }
                 filesInReliase_s.Add(filesInReliase);
             }
-            
+            Projects.Add(filesInReliase_s);
 
-            return filesInReliase_s;
+            return Projects;
         }
     }
 }

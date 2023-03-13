@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
-        <TargetFrameworks>net6.0-maccatalyst</TargetFrameworks>
+        
         <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net6.0-windows10.0.19041.0</TargetFrameworks>
         <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
         <!-- <TargetFrameworks>$(TargetFrameworks);net6.0-tizen</TargetFrameworks> -->
@@ -30,6 +30,7 @@
         <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
         <UserSecretsId>9f759c3a-94fc-4eee-9e36-259b7eb84d1d</UserSecretsId>
+        <Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
 
     <ItemGroup>
@@ -51,6 +52,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="LiteDB" Version="5.0.16" />
       <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
       <PackageReference Include="MonoTorrent" Version="3.0.0-beta.rev0159" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3-beta1" />

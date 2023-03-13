@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LiteDB;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -40,5 +41,24 @@ namespace GameLauncher_MAUI_CSharp.Global
      
         public static int MaxNumberOfItems = 100;
         public static string AppName = "My App";
+    }
+}
+public static class LauncherApp 
+{
+    public static readonly LiteDatabase db = new LiteDatabase(GetDataBasePath());
+    public static string GetAppDataDir()
+    {
+        if (!Directory.Exists(Path.Combine(Environment.GetFolderPath(
+  Environment.SpecialFolder.ApplicationData), "AbobaLauncher\\"))) 
+        {
+            Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(
+  Environment.SpecialFolder.ApplicationData), "AbobaLauncher\\"));
+        }
+        return Path.Combine(Environment.GetFolderPath(
+  Environment.SpecialFolder.ApplicationData), "AbobaLauncher\\");
+    }
+    public static string GetDataBasePath()
+    {
+        return Path.Combine(GetAppDataDir(), "app.db");
     }
 }

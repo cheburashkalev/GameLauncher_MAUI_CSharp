@@ -2,7 +2,8 @@
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:GameLauncher_MAUI_CSharp"
-             x:Class="GameLauncher_MAUI_CSharp.App">
+             x:Class="GameLauncher_MAUI_CSharp.App"
+             >
     <Application.Resources>
         <ResourceDictionary>
 
@@ -18,9 +19,12 @@
                 <Setter Property="TextColor" Value="{DynamicResource PrimaryTextColor}" />
                 <Setter Property="FontFamily" Value="OpenSansRegular" />
                 <Setter Property="BackgroundColor" Value="#2b0b98" />
-                <Setter Property="Padding" Value="14,10" />
+                <Setter Property="Padding" Value="1,10" />
             </Style>
-
+            
         </ResourceDictionary>
     </Application.Resources>
+    
+    
 </Application>
+    

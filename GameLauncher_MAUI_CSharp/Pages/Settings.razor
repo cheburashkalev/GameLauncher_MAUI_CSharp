@@ -1,0 +1,53 @@
+﻿<h3>Settings</h3>EditForm blazor
+@page "/Settings"
+@using Microsoft.Extensions.Logging
+@inject ILogger<Settings> Logger
+
+
+
+@if (LauncherApp.db.CollectionExists("Repositories"))
+{
+    exampleModel.Clear();
+    @foreach (var item in LauncherApp.db.GetCollection<Repositories>("Repositories").FindAll())
+    {
+        RepModel repModel = new();
+        repModel.RepId = item.RepId;
+        exampleModel.Add(repModel);
+        <EditForm Model="@exampleModel" OnValidSubmit="@HandleValidSubmit" style="padding-bottom:20px;">
+            
+            <InputText id=@repModel.RepId @bind-Value="repModel.NameB" class="form-control" style="width:30%;display:inline-block;" />
+
+            <InputText id=@repModel.RepId @bind-Value="repModel.repB" class="form-control" style="width:30%;display: inline-block;" />
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <ValidationMessage For="@(() => repModel.NameB)" />
+            <ValidationMessage For="@(() => repModel.repB)" />
+        </EditForm>
+         
+    }
+    var EC = new EditContext(exampleModel);
+}
+else
+{
+    exampleModel.Clear();
+    NewRepClicked();
+}
+
+<button class="btn btn-primary" @onclick="NewRepClicked">Add Rep</button>
+
+@code {
+    private List<RepModel> exampleModel = new();
+    void NewRepClicked()
+    {
+        RepModel repModel = new();
+        repModel.NameB = "";
+        StateHasChanged();
+
+    }
+    private void HandleValidSubmit()
+    {
+        Logger.LogInformation("HandleValidSubmit called");
+
+        // Process the valid form
+    }
+}
