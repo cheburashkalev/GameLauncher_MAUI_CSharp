@@ -2,11 +2,13 @@
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
   xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  IgnorableNamespaces="uap rescap">
+  xmlns:iot="http://schemas.microsoft.com/appx/manifest/iot/windows10"
+  IgnorableNamespaces="uap rescap iot">
 
-  <Identity Name="maui-package-name-placeholder" Publisher="CN=User Name" Version="0.0.0.0" />
+  <Identity Name="maui-package-name-placeholder" Publisher="CN=User Name" Version="0.0.3.0" />
 
   <mp:PhoneIdentity PhoneProductId="514D94B0-D6D4-4864-88C4-6AC2B1E59DA5" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -27,7 +29,15 @@
 
   <Applications>
     <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="$targetentrypoint$">
-      <uap:VisualElements
+         <Extensions>
+                <uap:Extension Category="windows.protocol">
+                  <uap:Protocol Name="x-open-laucher">
+                    <uap:Logo>$placeholder$.png</uap:Logo>
+                    <uap:DisplayName>OpenLaucher</uap:DisplayName>
+                  </uap:Protocol>
+                </uap:Extension>
+          </Extensions>
+		<uap:VisualElements
         DisplayName="$placeholder$"
         Description="$placeholder$"
         Square150x150Logo="$placeholder$.png"
@@ -38,9 +48,9 @@
       </uap:VisualElements>
     </Application>
   </Applications>
-
-  <Capabilities>
-    <rescap:Capability Name="runFullTrust" />
+	
+	<Capabilities>
+			<rescap:Capability Name="runFullTrust" />
   </Capabilities>
 
 </Package>

@@ -4,6 +4,8 @@ using System.Net.Http;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.Maui.Platform;
 using Microsoft.Maui.Controls.Xaml;
+using Microsoft.Win32;
+using url_scheme_manager;
 
 
 
@@ -22,8 +24,7 @@ public static class MauiProgram
 {
 	public static MauiApp CreateMauiApp()
 	{
-		
-		var builder = MauiApp.CreateBuilder();
+        var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
 			.ConfigureFonts(fonts =>

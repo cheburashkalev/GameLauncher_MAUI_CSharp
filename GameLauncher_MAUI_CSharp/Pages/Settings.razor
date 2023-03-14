@@ -1,8 +1,9 @@
 ﻿<h3>Settings</h3>EditForm blazor
 @page "/Settings"
 @using Microsoft.Extensions.Logging
+@using System.ComponentModel.DataAnnotations;
 @inject ILogger<Settings> Logger
-
+@inject IJSRuntime JsRuntime;
 
 
 @if (LauncherApp.db.CollectionExists("Repositories"))
@@ -13,19 +14,35 @@
         RepModel repModel = new();
         repModel.RepId = item.RepId;
         exampleModel.Add(repModel);
-        <EditForm Model="@exampleModel" OnValidSubmit="@HandleValidSubmit" style="padding-bottom:20px;">
-            
-            <InputText id=@repModel.RepId @bind-Value="repModel.NameB" class="form-control" style="width:30%;display:inline-block;" />
-
-            <InputText id=@repModel.RepId @bind-Value="repModel.repB" class="form-control" style="width:30%;display: inline-block;" />
+        string modFormUser = "form-control";
+        string modFormRep = "form-control";
+        <EditForm id="@repModel.RepId" Model="@exampleModel" style="padding-bottom:20px;" >
             <DataAnnotationsValidator />
             <ValidationSummary />
-            <ValidationMessage For="@(() => repModel.NameB)" />
-            <ValidationMessage For="@(() => repModel.repB)" />
+            <input class="@modFormUser" style="width:30%;display:inline-block;" @bind-value="repModel.NameB" />
+            <input class="@modFormRep" style="width:30%;display:inline-block;" @bind-value="repModel.repB" />
+           
         </EditForm>
-         
+        if (repModel.NameB != null)
+        {
+            IsUserNameValidAttribute a = new();
+            if (a.IsValid(repModel.NameB))
+                modFormUser = "form-control modified valid";
+            else modFormUser = "form-control modified invalid";
+        }
+        else modFormRep = "form-control modified invalid";
+        if (repModel.repB != null)
+        {
+            IsRepValidAttribute a = new("NameB");
+            var b = new ValidationContext(repModel);
+            if (a.CisValid(repModel.repB, b) == null)
+                modFormRep = "form-control modified valid";
+            else modFormRep = "form-control modified invalid";
+        }
+        else modFormRep = "form-control modified invalid";
+
     }
-    var EC = new EditContext(exampleModel);
+    
 }
 else
 {
@@ -37,10 +54,23 @@ else
 
 @code {
     private List<RepModel> exampleModel = new();
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            foreach (var rep in exampleModel)
+            {
+
+                   // await JsRuntime.InvokeVoidAsync("eval", new object[] {$"document.getElementById(\"{rep.RepId}\").submit() " });
+
+            }
+        }
+    }
     void NewRepClicked()
     {
         RepModel repModel = new();
-        repModel.NameB = "";
+        repModel.NameB = " ";
+        repModel.repB = " ";
         StateHasChanged();
 
     }

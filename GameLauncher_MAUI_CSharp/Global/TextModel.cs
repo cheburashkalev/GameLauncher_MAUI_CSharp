@@ -15,8 +15,7 @@ public class RepModel
 {
 
     public ObjectId RepId { get; set; } = ObjectId.NewObjectId();
-    [Required]
-    [IsUserNameValid(ErrorMessage = "such a user does not exist in git hib")]
+
     public string NameB
     {
         get
@@ -61,8 +60,7 @@ public class RepModel
         }
     }
     string rep = "";
-    [Required]
-    [IsRepValid("NameB")]
+
     public string repB
     {
         get
@@ -134,6 +132,10 @@ namespace System.ComponentModel.DataAnnotations
         }
         public string OtherProperty { get; }
         public string? OtherPropertyDisplayName { get; internal set; }
+        public ValidationResult CisValid(object? value, ValidationContext validationContext) 
+        {
+          return IsValid(value, validationContext);
+        }
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
             var otherPropertyInfo = validationContext.ObjectType.GetRuntimeProperty(OtherProperty);

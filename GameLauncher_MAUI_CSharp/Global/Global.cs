@@ -45,6 +45,7 @@ namespace GameLauncher_MAUI_CSharp.Global
 }
 public static class LauncherApp 
 {
+    public static string AppPath = AppContext.BaseDirectory + System.Reflection.Assembly.GetExecutingAssembly().GetName().Name + ".exe";
     public static readonly LiteDatabase db = new LiteDatabase(GetDataBasePath());
     public static string GetAppDataDir()
     {

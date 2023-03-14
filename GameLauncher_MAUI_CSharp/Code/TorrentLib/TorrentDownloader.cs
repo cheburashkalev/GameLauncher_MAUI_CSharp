@@ -15,6 +15,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Octokit;
+using Windows.Media.Protection.PlayReady;
 
 
 namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
@@ -53,6 +54,7 @@ namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
         {
             try
             {
+                
                 var result = client.User.Get(user);
                 result.Wait();
                 return true;
