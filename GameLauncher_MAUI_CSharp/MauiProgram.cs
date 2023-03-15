@@ -6,6 +6,8 @@ using Microsoft.Maui.Platform;
 using Microsoft.Maui.Controls.Xaml;
 using Microsoft.Win32;
 using url_scheme_manager;
+using GameLauncher_MAUI_CSharp.WinUI;
+using static System.Net.Mime.MediaTypeNames;
 
 
 
@@ -15,6 +17,7 @@ using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
 using Windows.UI.ViewManagement;
+using WebSocketSharp;
 #endif
 
 
@@ -24,6 +27,15 @@ public static class MauiProgram
 {
 	public static MauiApp CreateMauiApp()
 	{
+
+        //LauncherApp.test = string.Concat(Environment.GetCommandLineArgs());
+        if (Environment.GetCommandLineArgs().Length > 1)
+        {
+            LauncherApp.TryConnecntAndSendNewArg(Environment.GetCommandLineArgs()[1],false);
+            LauncherApp.test = Environment.GetCommandLineArgs()[1];
+        }
+        LauncherApp.TryConnecntAndSendNewArg("",true);
+        LauncherApp.StartServer();
         var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
@@ -34,7 +46,7 @@ public static class MauiProgram
 
 		builder.Services.AddMauiBlazorWebView();
         builder.Services.AddSingleton<HttpClient>();
- builder.ConfigureLifecycleEvents(events =>
+        builder.ConfigureLifecycleEvents(events =>
          {
 
  #if WINDOWS10_0_19041_0_OR_GREATER

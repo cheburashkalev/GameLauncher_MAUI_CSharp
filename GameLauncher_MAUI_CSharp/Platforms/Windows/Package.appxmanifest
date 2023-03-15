@@ -34,6 +34,7 @@
                   <uap:Protocol Name="x-open-laucher">
                     <uap:Logo>$placeholder$.png</uap:Logo>
                     <uap:DisplayName>OpenLaucher</uap:DisplayName>
+					  
                   </uap:Protocol>
                 </uap:Extension>
           </Extensions>
