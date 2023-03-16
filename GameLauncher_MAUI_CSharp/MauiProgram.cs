@@ -8,6 +8,9 @@ using Microsoft.Win32;
 using url_scheme_manager;
 using GameLauncher_MAUI_CSharp.WinUI;
 using static System.Net.Mime.MediaTypeNames;
+using GameLauncher_MAUI_CSharp.Code.TorrentLib;
+using Octokit;
+
 
 
 
@@ -36,7 +39,12 @@ public static class MauiProgram
         }
         LauncherApp.TryConnecntAndSendNewArg("",true);
         LauncherApp.StartServer();
-        var builder = MauiApp.CreateBuilder();
+        var cl = LauncherApp.db.GetCollection<DB_OAuth>("OAuth");
+        if (cl.Exists(x => x.AuthServise == "GitHub") )
+        {if(cl.FindOne(x => x.AuthServise == "GitHub").token != null)
+            TorrentDownloader.client.Credentials = new Credentials(cl.FindOne(x => x.AuthServise == "GitHub").token);
+        }
+            var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
 			.ConfigureFonts(fonts =>
@@ -46,6 +54,7 @@ public static class MauiProgram
 
 		builder.Services.AddMauiBlazorWebView();
         builder.Services.AddSingleton<HttpClient>();
+
         builder.ConfigureLifecycleEvents(events =>
          {
 

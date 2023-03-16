@@ -1,30 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-
-using MonoTorrent;
-using MonoTorrent.Client;
-using MonoTorrent.Logging;
-using GameLauncher_MAUI_CSharp.Global;
-using static System.Net.Mime.MediaTypeNames;
-using System.Net;
-using System.IO;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using GameLauncher_MAUI_CSharp.Global;
 using Octokit;
-using Windows.Media.Protection.PlayReady;
+
+
 
 
 namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
 {
     public struct Project
     {
-        List<FilesInReliase> filesInReliases; 
+        List<FilesInReliase> filesInReliases;
     }
-        public struct FilesInReliase
+    public struct FilesInReliase
     {
         public string FullGameZIP;
         public ulong SizeFullGameZIP;
@@ -32,12 +18,60 @@ namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
         public ulong SizePatchGame;
         public string TorrentGame;
         public ulong SizeTorrentGame;
-		public string URL_PNG_3_2;
+        public string URL_PNG_3_2;
 
-	}
+    }
     public static class TorrentDownloader
     {
-       static GitHubClient client = new GitHubClient(new ProductHeaderValue("my-cool-app"));
+        public static readonly GitHubClient client = new GitHubClient(new ProductHeaderValue("my-cool-app"));
+        public static bool DeliteTokenGitHub()
+        {
+            TorrentDownloader.client.Credentials = Credentials.Anonymous;
+            var cl = LauncherApp.db.GetCollection<DB_OAuth>("OAuth");
+            if (cl.Exists(x => x.AuthServise == "GitHub"))
+            {
+                var _DB_OAuth = cl.FindOne(x => x.AuthServise == "GitHub");
+                _DB_OAuth.token = "";
+                return cl.Update(_DB_OAuth);
+            }
+            return false;
+        }
+        public static async Task<bool> NewCodeFromGitHub(string Code)
+        {
+
+            OauthToken oauthToken = await client.Oauth.CreateAccessToken(new OauthTokenRequest(LauncherApp.GITHUB_CLIENT_ID, LauncherApp.GITHUB_CLIENT_SECRETS, Code));
+            if (oauthToken.AccessToken != null)
+            {
+                var cl = LauncherApp.db.GetCollection<DB_OAuth>("OAuth");
+                if (cl.Exists(x => x.AuthServise == "GitHub"))
+                {
+                    var _DB_OAuth = cl.FindOne(x => x.AuthServise == "GitHub");
+                    // _repositories.RepId = ObjectId.NewObjectId();
+                    _DB_OAuth.token = oauthToken.AccessToken;
+                    cl.Update(_DB_OAuth);
+
+                }
+                else
+                {
+                    var _DB_OAuth = new DB_OAuth
+                    {
+                        AuthServise = "GitHub",
+                        token = oauthToken.AccessToken,
+                    };
+                    cl.Insert(_DB_OAuth);
+                    var _DB_OAuthEmpty = new DB_OAuth
+                    {
+                        AuthServise = "",
+                        token = "",
+                    };
+                    cl.Insert(_DB_OAuthEmpty);
+                    cl.EnsureIndex(x => x.AuthServise);
+                }
+                client.Credentials = new Credentials(oauthToken.AccessToken);
+                return true;
+            }
+            return false;
+        }
         public static async Task DownloadAsync(CancellationToken token)
         {
             ProjectsJsonURL testProjectsJsonUrl = new ProjectsJsonURL(1);
@@ -50,26 +84,12 @@ namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
 
 
         }
-        public static bool UserValid(string user) 
+        public static bool UserValid(string user)
         {
             try
             {
-                
+
                 var result = client.User.Get(user);
-                result.Wait();
-                return true;
-            }
-            catch 
-            {
-                return false;
-            }
-           
-        }
-        public static bool RepValid(string user, string rep)
-        {
-            try
-            {
-                var result = client.Repository.Get(user,rep);
                 result.Wait();
                 return true;
             }
@@ -79,7 +99,21 @@ namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
             }
 
         }
-        public static List<List<FilesInReliase>> GetInfoReliases() 
+        public static bool RepValid(string user, string rep)
+        {
+            try
+            {
+                var result = client.Repository.Get(user, rep);
+                result.Wait();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+
+        }
+        public static List<List<FilesInReliase>> GetInfoReliases()
         {
             List<List<FilesInReliase>> Projects = new();
             //foreach()
@@ -89,33 +123,33 @@ namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
             List<FilesInReliase> filesInReliase_s = new();
             foreach (var release in releases.Result)
             {
-                FilesInReliase filesInReliase =new();
-                  foreach (var asset in release.Assets)
-                  {
-                      if (asset.Name.EndsWith(".zip"))
-                      {
-                          filesInReliase.SizeFullGameZIP = (ulong)asset.Size;
-                          filesInReliase.FullGameZIP = asset.BrowserDownloadUrl;
-                          continue;
-                      }
-					if (asset.Name.EndsWith("3_2.png"))
-					{
-						filesInReliase.URL_PNG_3_2 = asset.BrowserDownloadUrl;
-						continue;
-					}
-					else if (asset.Name.EndsWith(".patch"))
-                      {
-                          filesInReliase.SizePatchGame = (ulong)asset.Size;
-                          filesInReliase.PatchGame = asset.BrowserDownloadUrl;
-                          continue;
-                      }
-                      else if (asset.Name.EndsWith(".torrent"))
-                      {
-                          filesInReliase.SizeTorrentGame = (ulong)asset.Size;
-                          filesInReliase.TorrentGame = asset.BrowserDownloadUrl;
-                          continue;
-                      }
-                  }
+                FilesInReliase filesInReliase = new();
+                foreach (var asset in release.Assets)
+                {
+                    if (asset.Name.EndsWith(".zip"))
+                    {
+                        filesInReliase.SizeFullGameZIP = (ulong)asset.Size;
+                        filesInReliase.FullGameZIP = asset.BrowserDownloadUrl;
+                        continue;
+                    }
+                    if (asset.Name.EndsWith("3_2.png"))
+                    {
+                        filesInReliase.URL_PNG_3_2 = asset.BrowserDownloadUrl;
+                        continue;
+                    }
+                    else if (asset.Name.EndsWith(".patch"))
+                    {
+                        filesInReliase.SizePatchGame = (ulong)asset.Size;
+                        filesInReliase.PatchGame = asset.BrowserDownloadUrl;
+                        continue;
+                    }
+                    else if (asset.Name.EndsWith(".torrent"))
+                    {
+                        filesInReliase.SizeTorrentGame = (ulong)asset.Size;
+                        filesInReliase.TorrentGame = asset.BrowserDownloadUrl;
+                        continue;
+                    }
+                }
                 filesInReliase_s.Add(filesInReliase);
             }
             Projects.Add(filesInReliase_s);

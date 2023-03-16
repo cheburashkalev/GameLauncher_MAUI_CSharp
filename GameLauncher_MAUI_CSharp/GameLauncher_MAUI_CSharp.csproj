@@ -62,7 +62,7 @@
       <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
       <PackageReference Include="MonoTorrent" Version="3.0.0-beta.rev0159" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3-beta1" />
-      <PackageReference Include="Octokit" Version="5.0.0" />
+      <PackageReference Include="Octokit" Version="5.0.2" />
       <PackageReference Include="System.Security.Permissions" Version="7.0.0" />
       <PackageReference Include="websocket-sharp-Net6.0" Version="1.0.3.1" />
     </ItemGroup>

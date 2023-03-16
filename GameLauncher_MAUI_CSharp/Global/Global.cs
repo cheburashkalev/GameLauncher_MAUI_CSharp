@@ -1,4 +1,5 @@
-﻿using LiteDB;
+﻿using GameLauncher_MAUI_CSharp.Code.TorrentLib;
+using LiteDB;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 
@@ -52,6 +54,9 @@ namespace GameLauncher_MAUI_CSharp.Global
 public static class LauncherApp 
 {
     public static string test;
+    public static string GITHUB_CLIENT_ID = "Iv1.a67ee35dc2e1db6a";
+    public static string GITHUB_CLIENT_SECRETS = "e94b08d79e2eedad803f38155b99f6ef2ed185f9";
+    public static string redirect_uri = "x-open-laucher://oauth";
     public static string AppPath = AppContext.BaseDirectory + System.Reflection.Assembly.GetExecutingAssembly().GetName().Name + ".exe";
     public static readonly LiteDatabase db = new LiteDatabase(GetDataBasePath());
     public static string GetAppDataDir()
@@ -136,7 +141,17 @@ public class WebLauncherRecieve : WebSocketBehavior
 {
     protected override void OnMessage(MessageEventArgs e)
     {
+        // access_token=123&expires_in=0&user_id=456
+
+
+        TorrentDownloader.NewCodeFromGitHub(e.Data.Split("code=")[1]).Start();
         LauncherApp.test = e.Data;
 
     }
+}
+public class DB_OAuth
+{
+    [BsonId]
+    public string AuthServise { get;set; }
+    public string token { get; set; }
 }

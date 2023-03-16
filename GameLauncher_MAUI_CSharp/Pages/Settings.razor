@@ -1,19 +1,23 @@
-﻿<ul class="prev-next" style="align-items:center; display: flex; justify-content: space-between;padding-left:unset">
+﻿
+@page "/Settings"
+@using Microsoft.Extensions.Logging
+@using System.ComponentModel.DataAnnotations;
+@using System.Diagnostics;
+@inject ILogger<Settings> Logger
+@inject IJSRuntime JsRuntime
+@LauncherApp.test
+
+<ul class="prev-next" style="align-items:center; display: flex; justify-content: space-between;padding-left:unset">
     <li style="display: flex; ">
         <h1>Settings</h1>
     </li>
     <li style="display: block; ">
-        <button class="btn btn-primary ">SingIn</button>
+        <button class="btn btn-primary" @onclick="SingIn">@SingButtonText</button>
     </li>
 </ul>
 
 
-@LauncherApp.test
-@page "/Settings"
-@using Microsoft.Extensions.Logging
-@using System.ComponentModel.DataAnnotations;
-@inject ILogger<Settings> Logger
-@inject IJSRuntime JsRuntime;
+
 
 
 @if (LauncherApp.db.CollectionExists("Repositories"))
@@ -29,6 +33,7 @@
         <EditForm id="@repModel.RepId" Model="@exampleModel" style="padding-bottom:20px;" >
             <DataAnnotationsValidator />
             <ValidationSummary />
+            <ul style="margin-bottom: unset;padding-left: unset;"><li style="width:30%;display:inline-block;">User </li><li style="width:30%;display:inline-block;">Rep </li> </ul>
             <input class="@modFormUser" style="width:30%;display:inline-block;" @bind-value="repModel.NameB" />
             <input class="@modFormRep" style="width:30%;display:inline-block;" @bind-value="repModel.repB" />
            
@@ -63,17 +68,33 @@ else
 <button class="btn btn-primary" @onclick="NewRepClicked">Add Rep</button>
 
 @code {
+
+    static string ButtonLoginText()
+    {
+
+        return !(TorrentDownloader.client.Credentials == Credentials.Anonymous) ? "Log Out" : "log In";
+
+    }
+    string SingButtonText = ButtonLoginText();
     private List<RepModel> exampleModel = new();
+    async Task SingIn()
+    {
+        switch (SingButtonText)
+        {
+            case ("Log Out"):
+                TorrentDownloader.DeliteTokenGitHub();
+                break;
+            case ("log In"):
+                Process.Start(new ProcessStartInfo($"https://github.com/login/oauth/authorize?client_id={LauncherApp.GITHUB_CLIENT_ID}&redirect_uri={LauncherApp.redirect_uri}") { UseShellExecute = true });
+                break;
+        }
+
+    }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
         {
-            foreach (var rep in exampleModel)
-            {
 
-                   // await JsRuntime.InvokeVoidAsync("eval", new object[] {$"document.getElementById(\"{rep.RepId}\").submit() " });
-
-            }
         }
     }
     void NewRepClicked()
