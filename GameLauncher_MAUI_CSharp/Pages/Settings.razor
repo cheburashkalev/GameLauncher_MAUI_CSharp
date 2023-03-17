@@ -71,17 +71,17 @@ else
 
     static string ButtonLoginText()
     {
-
         return !(TorrentDownloader.client.Credentials == Credentials.Anonymous) ? "Log Out" : "log In";
-
     }
     string SingButtonText = ButtonLoginText();
     private List<RepModel> exampleModel = new();
+
     async Task SingIn()
     {
         switch (SingButtonText)
         {
             case ("Log Out"):
+
                 TorrentDownloader.DeliteTokenGitHub();
                 break;
             case ("log In"):

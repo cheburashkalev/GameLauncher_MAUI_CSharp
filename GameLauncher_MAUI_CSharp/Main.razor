@@ -1,7 +1,14 @@
 
 <Router AppAssembly="@typeof(Main).Assembly">
 	<Found Context="routeData">
-		<RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <LayoutView Layout="@typeof(MainLayout)">
+            <TransitionableRoutePrimary RouteData="@routeData" ForgetStateOnTransition="true">
+                <TransitionableRouteView DefaultLayout="@typeof(LauncherViewLayout)" />
+            </TransitionableRoutePrimary>
+            <TransitionableRouteSecondary RouteData="@routeData" ForgetStateOnTransition="true">
+                <TransitionableRouteView DefaultLayout="@typeof(LauncherViewLayout)" />
+            </TransitionableRouteSecondary>
+        </LayoutView>
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
 	</Found>
 	<NotFound>

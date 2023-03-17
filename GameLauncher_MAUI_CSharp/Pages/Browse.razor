@@ -69,11 +69,7 @@ opacity:1"> </canvas>
         width = "50%";
         currentCount = Global.MaxNumberOfItems;
     }
-    protected override async Task OnInitializedAsync()
-    {
-        StateHasChanged();
-
-    }
+ 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -100,7 +96,6 @@ opacity:1"> </canvas>
         var imageStream = await GetImageStreamAsync(ImageURL);
         var dotnetImageStream = new DotNetStreamReference(imageStream);
         await JsRuntime.InvokeVoidAsync("setImage3", id, dotnetImageStream);
-        await Task.Delay(6000);
         try
         {
             await JsRuntime.InvokeVoidAsync("eval", new object[] {

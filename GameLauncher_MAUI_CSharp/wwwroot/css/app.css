@@ -20,6 +20,7 @@ a, .btn-link {
 
 .content {
     padding-top: 1.1rem;
+    position: relative;
 }
 
 .valid.modified:not([type=checkbox]) {
@@ -182,3 +183,4 @@ a, .btn-link {
         background: #fafafa;
         box-shadow: 40px 40px 40px #cccccc, 0 0 0 #ffffff, 0 0 0 #cccccc inset, 2px 2px 2px #ffffff inset;
     }
+}

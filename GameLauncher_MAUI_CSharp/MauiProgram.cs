@@ -10,6 +10,7 @@ using GameLauncher_MAUI_CSharp.WinUI;
 using static System.Net.Mime.MediaTypeNames;
 using GameLauncher_MAUI_CSharp.Code.TorrentLib;
 using Octokit;
+using GameLauncher_MAUI_CSharp.Shared.Layout;
 
 
 
@@ -51,8 +52,8 @@ public static class MauiProgram
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
 			});
-
-		builder.Services.AddMauiBlazorWebView();
+        builder.Services.AddScoped<BlazorTransitionableRoute.IRouteTransitionInvoker, RouteTransitionInvoker>();
+        builder.Services.AddMauiBlazorWebView();
         builder.Services.AddSingleton<HttpClient>();
 
         builder.ConfigureLifecycleEvents(events =>
