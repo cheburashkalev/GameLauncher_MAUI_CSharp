@@ -13,3 +13,13 @@
     border-radius: 0px;
     border-left: 0.3rem solid #a4a4a4c4;
 }
+.nav-bar-item {
+    padding-bottom: unset;
+    padding-right: unset;
+    padding-left: unset;
+}
+    .nav-bar-item.nav-item {
+        padding-bottom: unset;
+        padding-right: unset;
+        padding-left: unset;
+    }
