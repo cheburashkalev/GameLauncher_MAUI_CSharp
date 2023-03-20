@@ -2,7 +2,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsRuntime;
 @inject HttpClient Http
-
+<div style="min-height:100%">
 <h1>Browse</h1>
 
 <p role="status">Current count: @currentCount</p>
@@ -10,25 +10,7 @@
 <button class="btn btn-primary" href="" @onclick="IncrementCount">Click me</button>
 
 
-<div class="fixed-bottom">
-<div class="container-fluid">
-        <div class="row">
-            <div class="col-3"></div>
-            <div class="col-8">
-                <p></p>
-                Loading Blazor WebAssembly...
-                <br />
-                <div class="progress">
-                    <div id="progressbar" class="progress-bar progress-bar-striped active" role="progressbar" style="width:@width"></div>
-                </div>
-            </div>
-            <div class="col-2"></div>
-        </div>
-</div>
-<p></p>
-              
-<br />
-</div>
+
 <ul class="flex-container">
     @foreach (var project in filesInReliase)
     {
@@ -55,7 +37,12 @@ opacity:1"> </canvas>
         }
     }
 </ul>
-    
+
+                Loading Blazor WebAssembly..
+                <div class="progress">
+    <div id="progressbar" class="progress-bar progress-bar-striped active" role="progressbar" style="width:@width ; min-height:100%;"></div>
+                </div>
+</div>
 @code {
     private int currentCount = 0;
     private string response ="null";

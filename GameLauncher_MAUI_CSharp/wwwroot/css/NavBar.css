@@ -1,0 +1,15 @@
+﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+
+.nav-button-style {
+    border-radius: 0px;
+    border-left: 0.3rem solid #00000000;
+    padding-left:8px;
+}
+.nav-button-style.active {
+    border-radius: 0px;
+    border-left: 0.3rem solid;
+}
+.nav-button-style:hover {
+    border-radius: 0px;
+    border-left: 0.3rem solid #a4a4a4c4;
+}

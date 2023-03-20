@@ -1,7 +1,7 @@
 
-<Router AppAssembly="@typeof(Main).Assembly">
-	<Found Context="routeData">
-        <LayoutView Layout="@typeof(MainLayout)">
+<Router AppAssembly="@typeof(Main).Assembly" >
+	<Found Context="routeData" >
+        <LayoutView Layout="@typeof(MainLayout)" >
             <TransitionableRoutePrimary RouteData="@routeData" ForgetStateOnTransition="true">
                 <TransitionableRouteView DefaultLayout="@typeof(LauncherViewLayout)" />
             </TransitionableRoutePrimary>

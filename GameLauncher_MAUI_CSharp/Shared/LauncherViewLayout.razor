@@ -1,15 +1,53 @@
-﻿@inherits LayoutComponentBase
+﻿@inherits TransitionableLayoutComponent
 
-
-<div class="view-content transition @transitioningClass">
+<div class="transition @transitioningClass @(Transition.IntoView ? "transitioned" : "transitioned_behind") full">
     @Body
 </div>
 
-@code {
-    [CascadingParameter]
-    public Transition Transition { get; set; }
+<style>
+    .transition {
+        position: absolute;
+        overflow: hidden;
+        left: 0;
+        right: 0;
 
-    private string transitioningClass => !Transition.FirstRender
-        ? (Transition.IntoView ? "transition-in transitioning" : "transition-out transitioning")
-        : "";
-}
+        
+    }
+
+    .transitioned {
+        z-index: 1;
+        position: absolute;
+        overflow: hidden;
+        left: 0;
+        right: 0;
+
+    }
+
+    .transitioned_behind {
+        overflow: hidden;
+        left: 0;
+        right: 0;
+        position: absolute;
+        z-index: 1;
+    }
+    .full
+    {
+       
+    }
+</style>
+
+@code {
+    private string transitioningClass => Transition.FirstRender
+        ? "" : $"animate__{transitioningEffect()} animate__slow animate__animated";
+
+    private int opacity => Transition.IntoView ? 1 : 0;
+
+    private string transitioningEffect()
+    {
+
+            var effect = Transition.IntoView ? "fadeIn" : "fadeOut";
+            var direction = Transition.Backwards ? "Up" : "Down";
+            return effect + direction;
+
+    }
+} 

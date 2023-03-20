@@ -6,7 +6,7 @@
 @inject ILogger<Settings> Logger
 @inject IJSRuntime JsRuntime
 @LauncherApp.test
-
+<div style="min-height:100%">
 <ul class="prev-next" style="align-items:center; display: flex; justify-content: space-between;padding-left:unset">
     <li style="display: flex; ">
         <h1>Settings</h1>
@@ -66,7 +66,7 @@ else
 }
 
 <button class="btn btn-primary" @onclick="NewRepClicked">Add Rep</button>
-
+</div>
 @code {
 
     static string ButtonLoginText()
