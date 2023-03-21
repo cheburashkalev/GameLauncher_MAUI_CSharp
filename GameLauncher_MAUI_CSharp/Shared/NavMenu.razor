@@ -1,30 +1,23 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-	<div class="container-fluid">
-		<a class="navbar-brand" href="">Launcher Aboba</a>
-		<button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-			<span class="navbar-toggler-icon"></span>
-		</button>
-	</div>
-</div>
+﻿
 
 <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
 	<nav class="flex-column">
 		<div class="nav-item nav-bar-item">
 			<NavLink class="nav-link nav-button-style" href="" Match="NavLinkMatch.All" style="border-radius: 0px;">
-				
-				<span class="oi oi-home" aria-hidden="true"></span>
+
+				<img src="Resources\AppIcon\homeicon.svg" style="padding-right:0.75rem;" />
 				Home
 			</NavLink>
 		</div>
 		<div class="nav-item nav-bar-item">
 			<NavLink class="nav-link nav-button-style" href="Browse" style="border-radius: 0px;">
-				<span class="oi oi-plus" aria-hidden="true"></span> 
+				<img src="Resources\AppIcon\browseicon.svg" style="padding-right:0.75rem;" />
 				Browse
 			</NavLink>
 		</div>
 		<div class="nav-item nav-bar-item">
 			<NavLink class="nav-link nav-button-style" href="Settings" style="border-radius: 0px;">
-				<span class="oi oi-list-rich" aria-hidden="true"></span>
+				<img src="Resources\AppIcon\libraryicon.svg" style="padding-right:0.75rem;" />
 				Settings
 			</NavLink>
 		</div>

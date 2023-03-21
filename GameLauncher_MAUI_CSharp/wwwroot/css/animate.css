@@ -8,9 +8,9 @@
  * Copyright (c) 2022 Animate.css
  */
 :root {
-  --animate-duration: 1s;
-  --animate-delay: 1s;
-  --animate-repeat: 1;
+    --animate-duration: 1s;
+    --animate-delay: 1s;
+    --animate-repeat: 1;
 }
 .animate__animated {
     -webkit-animation-duration: 1s;
@@ -2202,9 +2202,11 @@
   animation-name: fadeOut;
 }
 @-webkit-keyframes fadeOutDown {
-  from {
-    opacity: 1;
-  }
+    from {
+        opacity: 1;
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+    }
 
   to {
     opacity: 0;
@@ -2213,9 +2215,11 @@
   }
 }
 @keyframes fadeOutDown {
-  from {
-    opacity: 1;
-  }
+    from {
+        opacity: 1;
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+    }
 
   to {
     opacity: 0;

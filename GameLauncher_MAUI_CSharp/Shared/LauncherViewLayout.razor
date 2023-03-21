@@ -28,7 +28,7 @@
         left: 0;
         right: 0;
         position: absolute;
-        z-index: 1;
+        z-index: 0;
     }
     .full
     {
@@ -38,16 +38,17 @@
 
 @code {
     private string transitioningClass => Transition.FirstRender
-        ? "" : $"animate__{transitioningEffect()} animate__slow animate__animated";
+        ? "" : $"animate__{transitioningEffect()} animate__faster animate__animated";
 
     private int opacity => Transition.IntoView ? 1 : 0;
 
     private string transitioningEffect()
     {
 
-            var effect = Transition.IntoView ? "fadeIn" : "fadeOut";
-            var direction = Transition.Backwards ? "Up" : "Down";
-            return effect + direction;
+        var effect = Transition.IntoView ? "fadeIn" : "fadeOut";
+        var direction = Transition.Backwards ? "Up" : "Down";
+        var anim = Transition.IntoView ? "" : "";
+        return effect + direction+anim;
 
     }
 } 
