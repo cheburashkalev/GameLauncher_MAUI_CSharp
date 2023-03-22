@@ -21,8 +21,12 @@ namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
         public string URL_PNG_3_2;
 
     }
+    public class TokenReciveEventArgs : EventArgs
+    {
+    }
     public static class TorrentDownloader
     {
+        public static EventHandler<TokenReciveEventArgs>? TokenRecive;
         public static readonly GitHubClient client = new GitHubClient(new ProductHeaderValue("my-cool-app"));
         public static bool DeliteTokenGitHub()
         {
@@ -32,14 +36,18 @@ namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
             {
                 var _DB_OAuth = cl.FindOne(x => x.AuthServise == "GitHub");
                 _DB_OAuth.token = "";
+                TokenRecive?.Invoke(new object(), new());
                 return cl.Update(_DB_OAuth);
             }
             return false;
         }
-        public static async Task<bool> NewCodeFromGitHub(string Code)
-        {
+       
 
-            OauthToken oauthToken = await client.Oauth.CreateAccessToken(new OauthTokenRequest(LauncherApp.GITHUB_CLIENT_ID, LauncherApp.GITHUB_CLIENT_SECRETS, Code));
+        public static bool NewCodeFromGitHub(string Code)
+        {
+            var tasktoken = client.Oauth.CreateAccessToken(new OauthTokenRequest(LauncherApp.GITHUB_CLIENT_ID, LauncherApp.GITHUB_CLIENT_SECRETS, Code));
+            tasktoken.Wait();
+            OauthToken oauthToken = tasktoken.Result;
             if (oauthToken.AccessToken != null)
             {
                 var cl = LauncherApp.db.GetCollection<DB_OAuth>("OAuth");
@@ -49,7 +57,6 @@ namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
                     // _repositories.RepId = ObjectId.NewObjectId();
                     _DB_OAuth.token = oauthToken.AccessToken;
                     cl.Update(_DB_OAuth);
-
                 }
                 else
                 {
@@ -68,7 +75,9 @@ namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
                     cl.EnsureIndex(x => x.AuthServise);
                 }
                 client.Credentials = new Credentials(oauthToken.AccessToken);
+                TokenRecive?.Invoke(new object(), new());
                 return true;
+
             }
             return false;
         }
