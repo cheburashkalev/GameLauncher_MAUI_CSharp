@@ -1,0 +1,85 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@using GameLauncher_MAUI_CSharp.Pages.Elements;
+
+
+
+<EditForm id="@model.RepId" Model="@model" style="padding-bottom:20px;">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <ul style="margin-bottom: unset;padding-left: unset;"><li style="width:30%;display:inline-block;">User </li><li style="width:30%;display:inline-block;">Rep </li> </ul>
+    <input class="@modFormUser" style="width:30%;display:inline-block;" @bind-value="model.NameB" />
+    <input class="@modFormRep" style="width:30%;display:inline-block;" @bind-value="model.repB" />
+    @if (model.NameB != null)
+    {
+    IsUserNameValidAttribute a = new();
+        if (a.IsValid(model.NameB))
+            userValid = true;
+        else userValid = false;
+    }
+    else userValid = false;
+
+    @if (model.repB != null)
+        {
+        @if (userValid)
+        {
+            IsRepValidAttribute a = new("NameB");
+            var b = new ValidationContext(model);
+            if (a.CisValid(model.repB, b) == null)
+                repValid = true;
+            else repValid = false;
+        }
+        else repValid = false;
+    }
+    else repValid = false;
+</EditForm>
+@code {
+    [Parameter]
+    public RepModel? model { get; set; }
+
+    string modFormUser = "form-control modified invalid";
+    bool LocUserValid = false;
+    bool userValid {
+        get 
+        {
+            return LocUserValid;
+        } 
+        set 
+        {
+            if (LocUserValid != value)
+            {
+                LocUserValid = value;
+                if (value)
+                    modFormUser = "form-control modified valid";
+                else modFormUser = "form-control modified invalid";
+
+                StateHasChanged();
+            }
+        } 
+    }
+    string modFormRep = "form-control modified invalid";
+    bool LocRepValid = false;
+    bool repValid
+    {
+        get
+        {
+            return LocRepValid;
+        }
+        set
+        {
+            if (LocRepValid != value)
+            {
+                LocRepValid = value;
+                if (value)
+                    modFormRep = "form-control modified valid";
+                else modFormRep = "form-control modified invalid";
+                StateHasChanged();
+            }
+        }
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="firstRender"></param>
+    /// <returns></returns>
+
+}

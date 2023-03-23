@@ -1,4 +1,5 @@
 ﻿using GameLauncher_MAUI_CSharp.Code.TorrentLib;
+using GameLauncher_MAUI_CSharp.Pages.Elements;
 using LiteDB;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
@@ -13,9 +14,8 @@ public class Repositories
 }
 public class RepModel
 {
-
     public ObjectId RepId { get; set; } = ObjectId.NewObjectId();
-
+    
     public string NameB
     {
         get
