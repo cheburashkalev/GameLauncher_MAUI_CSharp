@@ -1,19 +1,21 @@
 ﻿@inject IJSRuntime JsRuntime;
 @inject HttpClient Http;
 @using LiteDB;
-<li class="@classAnim" id=@boxid style="display:inline-block; padding-right:1rem;">
-    <canvas id=@Canvasid style="border-radius:5px; margin: 0px;
+@inject NavigationManager NavigationManager;
+<li class=@classAnim id=@boxid style="display:inline-block; padding-right:1rem;cursor: pointer;" onclick="@OnClick">
+    <img src="@image" id=@Canvasid class="gamecard" style=" margin: 0px;
     width: 200px;
     height: 300px;
     justify-content: center;
     display: flex;
     align-items: center;
     position: center;
-opacity:@opacity">
-</canvas>
-<label style="opacity:@opacity">
+opacity:@opacity;"/>
+
+        <label style="opacity:@opacity; cursor: pointer;">
     @NameGame
 </label>
+
 </li>
 @code {
     [Parameter]
@@ -26,6 +28,7 @@ opacity:@opacity">
     string Canvasid { get { return url + idCanvas.ToString(); } }
     private string classAnim;
     private int opacity = 0;
+    string image;
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -35,17 +38,30 @@ opacity:@opacity">
     }
     private async Task<Stream> GetImageStreamAsync(string ImageURL)
     {
+
         return await Http.GetStreamAsync(
             ImageURL);
+    }
+    private async Task OnClick()
+    {
+        NavigationManager.NavigateTo("GamePage", false);
+    }
+    private async Task PopulateImageFromStream()
+    {
+        Stream stream = await Http.GetStreamAsync(url);
+        MemoryStream ms = new MemoryStream();
+        stream.CopyTo(ms);
+        byte[] byteArray = ms.ToArray();
+        var b64String = Convert.ToBase64String(byteArray);
+        image = "data:image/png;base64," + b64String;
     }
 
     private async Task SetImageAsync(string ImageURL, string id)
     {
 
-        var imageStream = await GetImageStreamAsync(ImageURL);
-        var dotnetImageStream = new DotNetStreamReference(imageStream);
-
-        await JsRuntime.InvokeVoidAsync("setImage3", id, dotnetImageStream);
+        
+        await PopulateImageFromStream();
+       // await JsRuntime.InvokeVoidAsync("setImage3", id, dotnetImageStream);
         classAnim = "animate__fadeInLeft animate__faster animate__animated";
         opacity = 1;
         StateHasChanged();

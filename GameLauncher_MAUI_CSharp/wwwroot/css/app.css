@@ -157,10 +157,19 @@ a, .btn-link {
     position: center;
     background: #575757fa;
     box-shadow: 10px 10px 10px #575757fa, 0 0 0 #575757fa, 10px 10px 10px #575757fa inset, -10px -10px 10px #575757fa inset;
-    //animation: anime 3s cubic-bezier(0.16, 1, 0.3, 1) 1s infinite alternate;
     /* animation-fill-mode: forwards; */
 }
+.gamecard {
+    position: relative;
+    top: 0;
+    transition: top 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: #00000000;
+    border-radius:5px;
+}
 
+    .gamecard:hover {
+        top: -5px;
+    }
 @keyframes anime {
     0% {
         width: 200px;
