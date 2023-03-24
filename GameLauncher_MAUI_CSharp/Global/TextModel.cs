@@ -113,7 +113,9 @@ public class IsUserNameValidAttribute : ValidationAttribute
     public override bool IsValid(object value)
     {
         var inputValue = value as string;
+        if(inputValue != " ")
         return TorrentDownloader.UserValid(inputValue);
+        else return false;
     }
 }
 public class Ref<T> where T : struct
@@ -149,10 +151,14 @@ namespace System.ComponentModel.DataAnnotations
             }
             object? otherPropertyValue = otherPropertyInfo.GetValue(validationContext.ObjectInstance, null);
             var inputValue = value as string;
-            if (!TorrentDownloader.RepValid(otherPropertyValue as string, inputValue))
+            if (inputValue != " ")
             {
-                return new ValidationResult("this user does not have such a repository or does not have access");
+                if (!TorrentDownloader.RepValid(otherPropertyValue as string, inputValue))
+                {
+                    return new ValidationResult("this user does not have such a repository or does not have access");
+                }
             }
+            else return new ValidationResult("this user does not have such a repository or does not have access");
             return null;
 
         }
