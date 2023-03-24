@@ -2,96 +2,37 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsRuntime;
 @inject HttpClient Http
-<div style="min-height:100%">
+@using GameLauncher_MAUI_CSharp.Pages.Elements;
+
 <h1>Browse</h1>
-
-<p role="status">Current count: @currentCount</p>
-<p role="status">Current response: @response</p>
-<button class="btn btn-primary" href="" @onclick="IncrementCount">Click me</button>
-
-
-
 <ul class="flex-container">
-    @foreach (var project in filesInReliase)
+        @if (filesInReliase !=null)
     {
-        var file = project.FirstOrDefault();
-
-        if (file.URL_PNG_3_2 != null)
-            {
-            /* string a = $"background-image:url(\"{file.URL_PNG_3_2}\")";*/
-            /* style =@ a*/
-            string boxid = file.URL_PNG_3_2 + "_BOX";
-            <li class="box" id=@boxid style="opacity:1;">
-                <canvas id=@file.URL_PNG_3_2 style="border-radius:5px; margin: 0px;
-    width: 200px;
-    height: 300px;
-    justify-content: center;
-    display: flex;
-    align-items: center;
-    position: center;
-opacity:1">
-</canvas>
-           
-            </li>
-
-    
-        }
+       foreach (var project in filesInReliase)
+       {
+           var file = project.FirstOrDefault();
+      
+           if (file.URL_PNG_3_2 != null)
+               {
+                   <E_GameCard url=@file.URL_PNG_3_2 NameGame="@file.name"></E_GameCard>
+           }
+       }
     }
 </ul>
 
-                Loading Blazor WebAssembly..
-                <div class="progress">
-    <div id="progressbar" class="progress-bar progress-bar-striped active" role="progressbar" style="width:@width ; min-height:100%;"></div>
-                </div>
-</div>
 @code {
-    private int currentCount = 0;
-    private string response ="null";
-    private string width = "";
-    private List<string> imageSource=new();
-    private List<List<FilesInReliase>> filesInReliase = TorrentDownloader.GetInfoReliases();
 
-    private void IncrementCount()
-    {
-        Global.MaxNumberOfItems++;
-        width = "50%";
-        currentCount = Global.MaxNumberOfItems;
-    }
- 
+
+    private List<string> imageSource=new();
+    private List<List<FilesInReliase>> filesInReliase;
+
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            foreach (var project in filesInReliase)
-            {
-                var file = project.FirstOrDefault();
-                if (file.URL_PNG_3_2 != null)
-                {
-                    await SetImageAsync(file.URL_PNG_3_2, file.URL_PNG_3_2);
-                }
-            }
-        }
-    }
-    private async Task<Stream> GetImageStreamAsync(string ImageURL)
-    {
-        return await Http.GetStreamAsync(
-            ImageURL);
-    }
-
-    private async Task SetImageAsync(string ImageURL, string id)
-    {
-
-        var imageStream = await GetImageStreamAsync(ImageURL);
-        var dotnetImageStream = new DotNetStreamReference(imageStream);
-        await JsRuntime.InvokeVoidAsync("setImage3", id, dotnetImageStream);
-        try
-        {
-            await JsRuntime.InvokeVoidAsync("eval", new object[] {
-            $"document.getElementById(\"{id}_BOX\").style.animation = \"anime 3s cubic-bezier(0.16, 1, 0.3, 1) 1s alternate\" " });
-        }
-        catch
-        {
-            
+            filesInReliase = TorrentDownloader.GetInfoReliases();
+            StateHasChanged();
         }
     }
 }

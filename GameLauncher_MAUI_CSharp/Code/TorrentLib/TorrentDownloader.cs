@@ -12,6 +12,7 @@ namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
     }
     public struct FilesInReliase
     {
+        public string name;
         public string FullGameZIP;
         public ulong SizeFullGameZIP;
         public string PatchGame;
@@ -126,43 +127,54 @@ namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
         {
             List<List<FilesInReliase>> Projects = new();
             //foreach()
-            var releases = client.Repository.Release.GetAll("cheburashkalev", "testRepForLaucherFlax");
-            releases.Wait();
-
-            List<FilesInReliase> filesInReliase_s = new();
-            foreach (var release in releases.Result)
+            foreach (var item in LauncherApp.db.GetCollection<Repositories>("Repositories").FindAll())
             {
-                FilesInReliase filesInReliase = new();
-                foreach (var asset in release.Assets)
+                Task<IReadOnlyList<Release>> releases; 
+                try
                 {
-                    if (asset.Name.EndsWith(".zip"))
-                    {
-                        filesInReliase.SizeFullGameZIP = (ulong)asset.Size;
-                        filesInReliase.FullGameZIP = asset.BrowserDownloadUrl;
-                        continue;
-                    }
-                    if (asset.Name.EndsWith("3_2.png"))
-                    {
-                        filesInReliase.URL_PNG_3_2 = asset.BrowserDownloadUrl;
-                        continue;
-                    }
-                    else if (asset.Name.EndsWith(".patch"))
-                    {
-                        filesInReliase.SizePatchGame = (ulong)asset.Size;
-                        filesInReliase.PatchGame = asset.BrowserDownloadUrl;
-                        continue;
-                    }
-                    else if (asset.Name.EndsWith(".torrent"))
-                    {
-                        filesInReliase.SizeTorrentGame = (ulong)asset.Size;
-                        filesInReliase.TorrentGame = asset.BrowserDownloadUrl;
-                        continue;
-                    }
-                }
-                filesInReliase_s.Add(filesInReliase);
-            }
-            Projects.Add(filesInReliase_s);
+                    releases = client.Repository.Release.GetAll(item.User, item.Rep);
 
+                    releases.Wait();
+                }
+                catch 
+                {
+                    continue;
+                }
+                List<FilesInReliase> filesInReliase_s = new();
+                foreach (var release in releases.Result)
+                {
+                    FilesInReliase filesInReliase = new();
+                    foreach (var asset in release.Assets)
+                    {
+                        if (asset.Name.EndsWith(".zip"))
+                        {
+                            filesInReliase.SizeFullGameZIP = (ulong)asset.Size;
+                            filesInReliase.FullGameZIP = asset.BrowserDownloadUrl;
+                            continue;
+                        }
+                        if (asset.Name.EndsWith("3_2.png"))
+                        {
+                            filesInReliase.URL_PNG_3_2 = asset.BrowserDownloadUrl;
+                            continue;
+                        }
+                        else if (asset.Name.EndsWith(".patch"))
+                        {
+                            filesInReliase.SizePatchGame = (ulong)asset.Size;
+                            filesInReliase.PatchGame = asset.BrowserDownloadUrl;
+                            continue;
+                        }
+                        else if (asset.Name.EndsWith(".torrent"))
+                        {
+                            filesInReliase.SizeTorrentGame = (ulong)asset.Size;
+                            filesInReliase.TorrentGame = asset.BrowserDownloadUrl;
+                            continue;
+                        }
+                        filesInReliase.name = item.Rep;
+                    }
+                    filesInReliase_s.Add(filesInReliase);
+                }
+                Projects.Add(filesInReliase_s);
+            }
             return Projects;
         }
     }

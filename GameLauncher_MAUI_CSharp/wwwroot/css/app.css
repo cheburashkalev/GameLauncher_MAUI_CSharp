@@ -26,6 +26,7 @@ a, .btn-link {
     padding-right: 1.5rem !important;
     padding-top: 1.1rem;
     position: relative;
+    height: 100%;
 }
 
 .valid.modified:not([type=checkbox]) {
@@ -149,14 +150,14 @@ a, .btn-link {
     width: 200px;
     height: 300px;
     padding: 0%;
-    margin-left:20px;
+    margin-left: 20px;
     justify-content: center;
     display: flex;
     align-items: center;
     position: center;
-    background: #f0f0f0;
-    box-shadow: 10px 10px 10px #cccccc, 0 0 0 #ffffff, 10px 10px 10px #cccccc inset, -10px -10px 10px #ffffff inset;
-    animation: anime 3s cubic-bezier(0.16, 1, 0.3, 1) 1s infinite alternate;
+    background: #575757fa;
+    box-shadow: 10px 10px 10px #575757fa, 0 0 0 #575757fa, 10px 10px 10px #575757fa inset, -10px -10px 10px #575757fa inset;
+    //animation: anime 3s cubic-bezier(0.16, 1, 0.3, 1) 1s infinite alternate;
     /* animation-fill-mode: forwards; */
 }
 
@@ -165,27 +166,27 @@ a, .btn-link {
         width: 200px;
         height: 300px;
         background: #f0f0f0;
-        box-shadow: 0 0 0 #cccccc, 0 0 0 #ffffff, 10px 10px 10px #cccccc inset, -10px -10px 10px #ffffff inset;
+        box-shadow: 0 0 0 #575757fa, 0 0 0 #ffffff, 10px 10px 10px #ffffff inset, -10px -10px 10px #ffffff inset;
     }
 
     25% {
         width: 200px;
         height: 300px;
         background: #f8f8f8;
-        box-shadow: 10px 10px 10px #cccccc, 10px 10px 10px #ffffff, 0 0 0 #cccccc inset, 0 0 0 #ffffff inset;
+        box-shadow: 10px 10px 10px #575757fa, 10px 10px 10px #ffffff, 0 0 0 #ffffff inset, 0 0 0 #ffffff inset;
     }
 
     50% {
         width: 200px;
         height: 300px;
         background: #f8f8f8;
-        box-shadow: 10px 10px 10px #cccccc, 10px 10px 10px #ffffff, 0 0 0 #cccccc inset, 0 0 0 #ffffff inset;
+        box-shadow: 10px 10px 10px #575757fa, 10px 10px 10px #ffffff, 0 0 0 #cccccc inset, 0 0 0 #ffffff inset;
     }
 
     100% {
         width: 200px;
         height: 300px;
         background: #fafafa;
-        box-shadow: 40px 40px 40px #cccccc, 0 0 0 #ffffff, 0 0 0 #cccccc inset, 2px 2px 2px #ffffff inset;
+        box-shadow: 40px 40px 40px #575757fa, 0 0 0 #ffffff, 0 0 0 #cccccc inset, 2px 2px 2px #ffffff inset;
     }
 }

@@ -1,0 +1,108 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@using GameLauncher_MAUI_CSharp.Pages.Elements;
+
+
+
+<div style="padding-bottom:1rem;">
+<ul style="margin-bottom: unset;padding-left: unset;"><li style="width:30%;display:inline-block;">User </li><li style="width:30%;display:inline-block;">Rep </li> </ul>
+    <form @onsubmit="UserSubmit" style="width:30%;display:inline-block;">
+    <input class="@modFormUser" @bind-value="model.NameB" />
+    </form>
+    <form @onsubmit="RepSubmit" style="width:30%;display:inline-block;">
+    <input class="@modFormRep" @bind-value="model.repB" />
+</form>
+</div>
+@code {
+    [Parameter]
+    public RepModel? model { get; set; }
+
+    string modFormUser = "form-control modified invalid";
+    bool LocUserValid = false;
+    bool userValid {
+        get 
+        {
+            return LocUserValid;
+        } 
+        set 
+        {
+            if (LocUserValid != value)
+            {
+                LocUserValid = value;
+                if (value)
+                    modFormUser = "form-control modified valid";
+                else modFormUser = "form-control modified invalid";
+
+                StateHasChanged();
+            }
+        } 
+    }
+    string modFormRep = "form-control modified invalid";
+    bool LocRepValid = false;
+    bool repValid
+    {
+        get
+        {
+            return LocRepValid;
+        }
+        set
+        {
+            if (LocRepValid != value)
+            {
+                LocRepValid = value;
+                if (value)
+                    modFormRep = "form-control modified valid";
+                else modFormRep = "form-control modified invalid";
+                StateHasChanged();
+            }
+        }
+    }
+    async void SyncUserSubmit()
+    {
+       await UserSubmit();
+    }
+   async void SyncRepSubmit()
+    {
+        await RepSubmit();
+    }
+    async Task UserSubmit()
+    {
+        if (model != null && model.NameB != null)
+        {
+            IsUserNameValidAttribute a = new();
+            if (a.IsValid(model.NameB))
+                userValid = true;
+            else userValid = false;
+        }
+        else userValid = false;
+    }
+    async Task RepSubmit()
+    {
+        if (model != null && model.repB != null)
+        {
+            if (userValid)
+            {
+                IsRepValidAttribute a = new("NameB");
+                var b = new ValidationContext(model);
+                if (a.CisValid(model.repB, b) == null)
+                    repValid = true;
+                else repValid = false;
+            }
+            else repValid = false;
+        }
+        else repValid = false;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await UserSubmit();
+            await RepSubmit();
+        }
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="firstRender"></param>
+    /// <returns></returns>
+
+}
