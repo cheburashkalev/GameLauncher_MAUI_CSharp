@@ -123,6 +123,26 @@ namespace GameLauncher_MAUI_CSharp.Code.TorrentLib
             }
 
         }
+        public static List<IReadOnlyList<Release>> GetInfoReliasesV2()
+        {
+            List<IReadOnlyList<Release>> Repositories = new();
+            foreach (var item in LauncherApp.db.GetCollection<Repositories>("Repositories").FindAll())
+            {
+                Task<IReadOnlyList<Release>> releases;
+                try
+                {
+                    releases = client.Repository.Release.GetAll(item.User, item.Rep);
+                    releases.Wait();
+                    Repositories.Add(releases.Result);
+                }
+                catch
+                {
+                    continue;
+                }
+                
+            }
+            return Repositories;
+        }
         public static List<List<FilesInReliase>> GetInfoReliases()
         {
             List<List<FilesInReliase>> Projects = new();

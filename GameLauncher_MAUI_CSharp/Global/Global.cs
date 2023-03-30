@@ -62,13 +62,13 @@ public static class LauncherApp
     public static string GetAppDataDir()
     {
         if (!Directory.Exists(Path.Combine(Environment.GetFolderPath(
-  Environment.SpecialFolder.ApplicationData), "AbobaLauncher\\"))) 
+  Environment.SpecialFolder.ApplicationData), "XOpenLauncher\\"))) 
         {
             Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(
-  Environment.SpecialFolder.ApplicationData), "AbobaLauncher\\"));
+  Environment.SpecialFolder.ApplicationData), "XOpenLauncher\\"));
         }
         return Path.Combine(Environment.GetFolderPath(
-  Environment.SpecialFolder.ApplicationData), "AbobaLauncher\\");
+  Environment.SpecialFolder.ApplicationData), "XOpenLauncher\\");
     }
     public static string GetDataBasePath()
     {

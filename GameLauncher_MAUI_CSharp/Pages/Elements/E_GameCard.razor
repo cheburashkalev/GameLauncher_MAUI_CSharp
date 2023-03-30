@@ -1,7 +1,9 @@
 ﻿@inject IJSRuntime JsRuntime;
 @inject HttpClient Http;
+@using Downloader;
 @using LiteDB;
 @inject NavigationManager NavigationManager;
+@using System.ComponentModel;
 <li class=@classAnim id=@boxid style="display:inline-block; padding-right:1rem;cursor: pointer;" onclick="@OnClick">
     <img src="@image" id=@Canvasid class="gamecard" style=" margin: 0px;
     width: 200px;
@@ -22,6 +24,8 @@ opacity:@opacity;"/>
     public string url{ get; set; }
     [Parameter]
     public string NameGame { get; set; }
+    [Parameter]
+    public bool V1 { get; set; } = false;
     public ObjectId id = ObjectId.NewObjectId();
     public ObjectId idCanvas = ObjectId.NewObjectId();
     string boxid { get { return url + id.ToString(); } }
@@ -29,12 +33,101 @@ opacity:@opacity;"/>
     private string classAnim;
     private int opacity = 0;
     string image;
+
+    //GameInfoV2
+    [Parameter]
+    public Release Release { get; set; }
+    [Parameter]
+    public Repositories Repositories { get; set; }
+    IDownload GameInfoDownload { get; set; }
+    ReleaseAsset Asset_InfoDB { get; set; }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await SetImageAsync(url, Canvasid);
+            if (V1)
+            {
+                await SetImageAsync(url, Canvasid);
+            }
+            else
+            {
+                foreach (var Asset in Release.Assets)
+                {
+                    if (Asset.Name == "InfoDB.db")
+                    {
+                        Asset_InfoDB = Asset;
+                        var id = new BsonValue(Repositories.RepId);
+
+                        if (LauncherApp.db.GetCollection("BrowseInfo").FindById(id) == null)
+                        {
+                            LauncherApp.db.GetCollection("BrowseInfo").Insert(id,
+                                new BsonDocument
+                                                 {
+
+                                     [ "InfoDataUpdate"] =(long)0,
+                                     [ "GameDataUpdate"] =(long)0
+                                                 });
+                            LauncherApp.db.GetCollection("BrowseInfo").EnsureIndex("_id");
+                            GameInfoDownload = await GitHubDownloader.Download(
+                                Asset.BrowserDownloadUrl,
+                                Repositories.RepId + ".db",
+                                LauncherApp.GetAppDataDir(),
+                                DownloadProgressChanged,
+                                DownloadFileCompleted,
+                                DownloadStarted
+
+                            );
+                            continue;
+                        }
+
+                        //Asset.UpdatedAt.ToUnixTimeSeconds()
+                    }
+                    else if (Asset.Name == "GameCashDB.db")
+                    {
+
+                    }
+                    else if (Asset.Name.EndsWith("GameCashDB.dat"))
+                    {
+
+                    }
+                }
+
+            }
         }
+    }
+    void DownloadFileCompleted(object? sender, AsyncCompletedEventArgs args)
+    {
+
+        BsonDocument BrowseInfo = LauncherApp.db.GetCollection("BrowseInfo").FindById(new BsonValue(Repositories.RepId));
+        BrowseInfo["InfoDataUpdate"] = Asset_InfoDB.UpdatedAt.ToUnixTimeSeconds();
+        LauncherApp.db.GetCollection("BrowseInfo").Update(id, BrowseInfo);
+        string path = Path.Combine(LauncherApp.GetAppDataDir(), Repositories.RepId + ".db");
+        LiteDatabase InfoDatabase = new LiteDatabase(path);
+        var Image300_200 = InfoDatabase.GetStorage<string>("Images", "ImageCollection").FindById("$/300_200.image");
+        if (Image300_200 != null)
+        {
+            MemoryStream ms = new MemoryStream();
+            Image300_200.CopyTo(ms);
+            byte[] byteArray = ms.ToArray();
+            var b64String = Convert.ToBase64String(byteArray);
+            image = "data:image/png;base64," + b64String;
+        }
+        else
+        {
+            image = "";
+        }
+        classAnim = "animate__fadeInLeft animate__faster animate__animated";
+        opacity = 1;
+        InfoDatabase.Dispose();
+        InvokeAsync(() => StateHasChanged());
+    }
+    void DownloadProgressChanged(object? sender, DownloadProgressChangedEventArgs args)
+    {
+
+    }
+    void DownloadStarted(object? sender, DownloadStartedEventArgs args)
+    {
+        
     }
     private async Task<Stream> GetImageStreamAsync(string ImageURL)
     {

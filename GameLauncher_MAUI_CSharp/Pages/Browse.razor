@@ -6,16 +6,68 @@
 
 <h1>Browse</h1>
 <ul class="flex-container">
-        @if (filesInReliase !=null)
+    @if (v1)
     {
-       foreach (var project in filesInReliase)
-       {
-           var file = project.FirstOrDefault();
-      
-           if (file.URL_PNG_3_2 != null)
-               {
-                   <E_GameCard url=@file.URL_PNG_3_2 NameGame="@file.name"></E_GameCard>
-           }
+        if (filesInReliase != null)
+        {
+            foreach (var project in filesInReliase)
+            {
+                var file = project.FirstOrDefault();
+
+                if (file.URL_PNG_3_2 != null)
+                {
+                    <E_GameCard url=@file.URL_PNG_3_2 NameGame="@file.name" V1="true"></E_GameCard>
+                }
+
+            }
+        }
+    }
+    else
+    {
+        if (filesInReliaseV2 != null)
+        {
+            foreach (Repositories project in filesInReliaseV2)
+            {
+                try
+                {
+                    var TaskReleases = TorrentDownloader.client.Repository.Release.GetAll(project.User, project.Rep);
+                    TaskReleases.Wait();
+                    List<Release> Releases = TaskReleases.Result.ToList();
+                    if (Releases != null)
+                    {
+                        Release ReleaseEnd;
+                        foreach (Release Release in Releases)
+                        {
+                            if (Release != null)
+                            {
+                                if (Release.Assets.ToList().Find(x => x.Name == "InfoDB.db") != null)
+                                {
+                                    if (Release.Assets.ToList().Find(x => x.Name == "GameCashDB.db") != null)
+                                    {
+                                        <E_GameCard Release=@Release NameGame="@project.Rep" Repositories="@project"></E_GameCard>
+                                        ReleaseEnd = Release;
+
+                                        break;
+                                    }
+                                    else if (Release.Assets.ToList().Find(x => x.Name.EndsWith(".dat")) != null)
+                                    {
+                                        <E_GameCard Release=@Release NameGame="@project.Rep" Repositories="@project"></E_GameCard>
+                                        ReleaseEnd = Release;
+                                        break;
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+           //необходимо использовать дату обновлениня релиза для проверки свежести данных об игре
        }
     }
 </ul>
@@ -25,14 +77,23 @@
 
     private List<string> imageSource=new();
     private List<List<FilesInReliase>> filesInReliase;
-
-
+    bool v1 = false;
+    IEnumerable<Repositories> filesInReliaseV2;
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            filesInReliase = TorrentDownloader.GetInfoReliases();
-            StateHasChanged();
+            if (v1)
+            {
+                filesInReliase = TorrentDownloader.GetInfoReliases();
+                StateHasChanged();
+            }
+            else
+            {
+                filesInReliaseV2 = LauncherApp.db.GetCollection<Repositories>("Repositories").FindAll();
+                
+                StateHasChanged();
+            }
         }
     }
 }
