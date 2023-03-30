@@ -57,17 +57,18 @@ opacity:@opacity;"/>
                     {
                         Asset_InfoDB = Asset;
                         var id = new BsonValue(Repositories.RepId);
-
-                        if (LauncherApp.db.GetCollection("BrowseInfo").FindById(id) == null)
+                        var cl = LauncherApp.db.GetCollection("BrowseInfo");
+                        BsonDocument BrowseInfo = cl.FindById(id);
+                        if (BrowseInfo == null)
                         {
-                            LauncherApp.db.GetCollection("BrowseInfo").Insert(id,
+                            cl.Insert(id,
                                 new BsonDocument
-                                                 {
+                                    {
 
-                                     [ "InfoDataUpdate"] =(long)0,
-                                     [ "GameDataUpdate"] =(long)0
-                                                 });
-                            LauncherApp.db.GetCollection("BrowseInfo").EnsureIndex("_id");
+                                        ["InfoDataUpdate"] = (long)0,
+                                        ["GameDataUpdate"] = (long)0
+                                    });
+                            cl.EnsureIndex("_id");
                             GameInfoDownload = await GitHubDownloader.Download(
                                 Asset.BrowserDownloadUrl,
                                 Repositories.RepId + ".db",
@@ -78,6 +79,25 @@ opacity:@opacity;"/>
 
                             );
                             continue;
+                        }
+                        else
+                        {
+                            if (BrowseInfo["InfoDataUpdate"].AsInt64 != Asset_InfoDB.UpdatedAt.ToUnixTimeSeconds())
+                            {
+                                GameInfoDownload = await GitHubDownloader.Download(
+                                Asset.BrowserDownloadUrl,
+                                Repositories.RepId + ".db",
+                                LauncherApp.GetAppDataDir(),
+                                DownloadProgressChanged,
+                                DownloadFileCompleted,
+                                DownloadStarted
+                                );
+                            }
+                            else
+                            {
+                                LoadImage();
+                            }
+
                         }
 
                         //Asset.UpdatedAt.ToUnixTimeSeconds()
@@ -100,7 +120,11 @@ opacity:@opacity;"/>
 
         BsonDocument BrowseInfo = LauncherApp.db.GetCollection("BrowseInfo").FindById(new BsonValue(Repositories.RepId));
         BrowseInfo["InfoDataUpdate"] = Asset_InfoDB.UpdatedAt.ToUnixTimeSeconds();
-        LauncherApp.db.GetCollection("BrowseInfo").Update(id, BrowseInfo);
+        LauncherApp.db.GetCollection("BrowseInfo").Update(new BsonValue(Repositories.RepId), BrowseInfo);
+        LoadImage();
+    }
+    void LoadImage()
+    {
         string path = Path.Combine(LauncherApp.GetAppDataDir(), Repositories.RepId + ".db");
         LiteDatabase InfoDatabase = new LiteDatabase(path);
         var Image300_200 = InfoDatabase.GetStorage<string>("Images", "ImageCollection").FindById("$/300_200.image");
