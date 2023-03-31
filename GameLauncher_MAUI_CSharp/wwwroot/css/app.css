@@ -1,4 +1,5 @@
 ﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+@import url('open-iconic/font/css/Inter-font.css');
 ::-webkit-scrollbar {
     width: 0px;
     background: transparent; /* make scrollbar transparent */

@@ -171,6 +171,7 @@ opacity:@opacity;"/>
             var b64String = Convert.ToBase64String(byteArray);
             GamePageInfo.Base64Image1280_540 = "data:image/png;base64," + b64String;
         }
+        InfoDatabase.Dispose();
         NavigationManager.NavigateTo("GamePage", false);
     }
     private async Task PopulateImageFromStream()

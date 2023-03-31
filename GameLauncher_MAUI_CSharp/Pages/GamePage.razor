@@ -1,11 +1,21 @@
 ﻿@page "/GamePage"
 @if (true)
 {
+
     <img src="@GamePageInfo.Base64Image1280_540" style=" margin: 0px;
     width: 100%;
-background: linear-gradient(to right, white, transparent 15%, transparent 85%, white);
-    " />
+    -webkit-mask-image: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 50%, rgba(0,212,255,0) 100%);
+opacity: 0.3;
+    position:absolute;" />
+    <label style="padding-left:3rem;font-family: 'Inter-Bold';
+font-style: normal;
+font-weight: 700;
+font-size: 32px;
+line-height: 39px;">
+        Battle Chain
+   </label>
+
 }
 @code {
-
+    string GameName = "Battle Chain";
 }
