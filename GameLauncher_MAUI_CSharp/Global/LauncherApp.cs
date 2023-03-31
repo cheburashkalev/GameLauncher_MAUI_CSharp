@@ -6,7 +6,7 @@ using System.Collections;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Net;
-using System.Text
+using System.Text;
 using WebSocketSharp.Server;
 using WebSocketSharp;
 using GameLauncher_MAUI_CSharp.Data;
