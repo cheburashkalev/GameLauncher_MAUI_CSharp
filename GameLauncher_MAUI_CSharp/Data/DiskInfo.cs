@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GameLauncher_MAUI_CSharp.Data
 {
-    internal class DiskInfo
+    public class DiskInfo
     {
         public string? Name { get; set; }
         public string? RootDirectory { get; set; }

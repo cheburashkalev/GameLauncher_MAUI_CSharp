@@ -31,7 +31,7 @@ public static class LauncherApp
     }
     public static string GetDataBasePath() =>Path.Combine(GetAppDataDir(), "app.db");
     
-    public IEnumerable<DiskInfo> GetAllDisks()
+    public static IEnumerable<DiskInfo> GetAllDisks()
     {
         List<DiskInfo> result = new List<DiskInfo>();
         DriveInfo[] allDrives = DriveInfo.GetDrives();
@@ -113,5 +113,32 @@ public static class LauncherApp
         wssv.AddWebSocketService<WebLauncherRecieve>("/WebLauncherRecieve");
         wssv.Start();
     }
-    public static void 
+    public static void SaveDirForDrive(string RootDirectory, string LibraryFolder)
+    {
+        var id = new BsonValue(new ObjectId());
+        var cl = LauncherApp.db.GetCollection("FoldersLibraryX");
+        BsonDocument Library = cl.FindOne(x => x["RootDirectory"].AsString == RootDirectory);
+        if (LibraryFolder.StartsWith(RootDirectory))
+        {
+            if (Library == null)
+            {
+                cl.Insert(id,
+                 new BsonDocument
+                 {
+                     ["RootDirectory"] = RootDirectory,
+                     ["LibraryFolder"] = LibraryFolder
+                 }); 
+                cl.EnsureIndex("_id");
+            }
+            else
+            {
+                if (Library["LibraryFolder"].AsString != LibraryFolder)
+                {
+                    Library["LibraryFolder"] = LibraryFolder;
+                    id = Library["_id"];
+                    cl.Update(id, Library);
+                }
+            }
+        }
+    }
 }
