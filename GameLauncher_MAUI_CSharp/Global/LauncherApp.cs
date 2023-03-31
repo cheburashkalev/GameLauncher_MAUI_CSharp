@@ -148,7 +148,7 @@ public static class LauncherApp
         BsonArray? gameidsArray = gameids.AsArray;
         if(gameidsArray == null)
         {
-            Library["GameIds"] = new BsonArray()
+            Library["GameIds"] = new BsonArray();
         }
         gameidsArray.Add(gameIdBson);
         cl.Update(Library["_id"], Library);
