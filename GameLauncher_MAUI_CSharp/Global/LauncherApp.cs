@@ -1,15 +1,10 @@
-﻿using LiteDB;
+﻿using GameLauncher_MAUI_CSharp.Data;
+using LiteDB;
 using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.Collections;
-using System.Linq;
-using System.Net.NetworkInformation;
 using System.Net;
-using System.Text;
-using WebSocketSharp.Server;
+using System.Net.NetworkInformation;
 using WebSocketSharp;
-using GameLauncher_MAUI_CSharp.Data;
+using WebSocketSharp.Server;
 
 public static class LauncherApp
 {
@@ -29,8 +24,8 @@ public static class LauncherApp
         }
         return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XOpenLauncher\\");
     }
-    public static string GetDataBasePath() =>Path.Combine(GetAppDataDir(), "app.db");
-    
+    public static string GetDataBasePath() => Path.Combine(GetAppDataDir(), "app.db");
+
     public static IEnumerable<DiskInfo> GetAllDisks()
     {
         List<DiskInfo> result = new List<DiskInfo>();
@@ -113,32 +108,83 @@ public static class LauncherApp
         wssv.AddWebSocketService<WebLauncherRecieve>("/WebLauncherRecieve");
         wssv.Start();
     }
+
+    public static void AddGameId(string RootDirectory, ObjectId GameId)
+    {
+        BsonValue gameIdBson = new BsonValue(new ObjectId());
+        ILiteCollection<BsonDocument> cl = LauncherApp.db.GetCollection("FoldersLibraryX");
+        BsonDocument? Library = cl.FindOne(x => x["RootDirectory"].AsString == RootDirectory);
+        if (Library == null)
+        {
+            //TODO: Throw exception
+            return;
+        }
+
+        BsonValue? libFolder = Library["LibraryFolder"];
+        if (libFolder == null)
+        {
+            //TODO: Throw exception
+            return;
+        }
+        BsonValue? rootDir = Library["RootDirectory"];
+        if (rootDir == null)
+        {
+            //TODO: Throw exception
+            return;
+        }
+
+        if (!Directory.Exists(libFolder.AsString))
+        {
+            //TODO: Throw exception
+            return;
+        }
+        BsonValue? gameids = Library["GameIds"];
+        if(gameids == null)
+        {
+            //TODO: Throw exception
+            return;
+        }
+
+        BsonArray? gameidsArray = gameids.AsArray;
+        if(gameidsArray == null)
+        {
+            //TODO: Throw exception
+            return;
+        }
+        gameidsArray.Add(gameIdBson);
+        cl.Update(Library["_id"], Library);
+    }
+
     public static void SaveDirForDrive(string RootDirectory, string LibraryFolder)
     {
-        var id = new BsonValue(new ObjectId());
-        var cl = LauncherApp.db.GetCollection("FoldersLibraryX");
-        BsonDocument Library = cl.FindOne(x => x["RootDirectory"].AsString == RootDirectory);
-        if (LibraryFolder.StartsWith(RootDirectory))
+        BsonValue id = new BsonValue(new ObjectId());
+        var cl = db.GetCollection("FoldersLibraryX");
+        BsonDocument? Library = cl.FindOne(x => x["RootDirectory"].AsString == RootDirectory);
+        if (!LibraryFolder.StartsWith(RootDirectory))
         {
-            if (Library == null)
+            //TODO: Throw exception
+            return;
+        }
+        if (Library == null)
+        {
+            cl.Insert(id,
+             new BsonDocument
+             {
+                 ["RootDirectory"] = RootDirectory,
+                 ["LibraryFolder"] = LibraryFolder,
+                 ["GameIds"] = new BsonArray()
+             });
+            cl.EnsureIndex("_id");
+        }
+        else
+        {
+            if (Library["LibraryFolder"].AsString != LibraryFolder)
             {
-                cl.Insert(id,
-                 new BsonDocument
-                 {
-                     ["RootDirectory"] = RootDirectory,
-                     ["LibraryFolder"] = LibraryFolder
-                 }); 
-                cl.EnsureIndex("_id");
-            }
-            else
-            {
-                if (Library["LibraryFolder"].AsString != LibraryFolder)
-                {
-                    Library["LibraryFolder"] = LibraryFolder;
-                    id = Library["_id"];
-                    cl.Update(id, Library);
-                }
+                Library["LibraryFolder"] = LibraryFolder;
+                id = Library["_id"];
+                cl.Update(id, Library);
             }
         }
+
     }
 }
