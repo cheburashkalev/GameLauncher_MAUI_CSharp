@@ -139,15 +139,11 @@ public static class LauncherApp
             return;
         }
         BsonValue? gameids = Library["GameIds"];
-        if(gameids == null)
+        BsonArray? gameidsArray = gameids != null ? gameids.AsArray : null;
+        if (gameids == null || gameidsArray == null)
         {
-            Library["GameIds"] = new BsonArray();
-        }
-
-        BsonArray? gameidsArray = gameids.AsArray;
-        if(gameidsArray == null)
-        {
-            Library["GameIds"] = new BsonArray();
+            gameidsArray = new BsonArray();
+            Library["GameIds"] = gameidsArray;
         }
         gameidsArray.Add(gameIdBson);
         cl.Update(Library["_id"], Library);
