@@ -141,8 +141,7 @@ public static class LauncherApp
         BsonValue? gameids = Library["GameIds"];
         if(gameids == null)
         {
-            //TODO: Throw exception
-            return;
+            Library["GameIds"] = new BsonArray();
         }
 
         BsonArray? gameidsArray = gameids.AsArray;
