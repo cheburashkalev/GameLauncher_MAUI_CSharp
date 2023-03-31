@@ -150,7 +150,7 @@ opacity:@opacity;"/>
     }
     void DownloadStarted(object? sender, DownloadStartedEventArgs args)
     {
-        
+
     }
     private async Task<Stream> GetImageStreamAsync(string ImageURL)
     {
@@ -160,6 +160,17 @@ opacity:@opacity;"/>
     }
     private async Task OnClick()
     {
+        string path = Path.Combine(LauncherApp.GetAppDataDir(), Repositories.RepId + ".db");
+        LiteDatabase InfoDatabase = new LiteDatabase(path);
+        var Image1280_540 = InfoDatabase.GetStorage<string>("Images", "ImageCollection").FindById("$/1280_540.image");
+        if (Image1280_540 != null)
+        {
+            MemoryStream ms = new MemoryStream();
+            Image1280_540.CopyTo(ms);
+            byte[] byteArray = ms.ToArray();
+            var b64String = Convert.ToBase64String(byteArray);
+            GamePageInfo.Base64Image1280_540 = "data:image/png;base64," + b64String;
+        }
         NavigationManager.NavigateTo("GamePage", false);
     }
     private async Task PopulateImageFromStream()

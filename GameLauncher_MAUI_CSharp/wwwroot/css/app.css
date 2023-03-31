@@ -24,7 +24,7 @@ a, .btn-link {
 .content {
     padding-left: 2rem !important;
     padding-right: 1.5rem !important;
-    padding-top: 1.1rem;
+    padding-top: 0rem;
     position: relative;
     height: 100%;
 }
