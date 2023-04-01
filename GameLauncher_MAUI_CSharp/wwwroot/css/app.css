@@ -15,7 +15,36 @@ h1:focus {
 a, .btn-link {
     color: #0071c1;
 }
+.progress {
+    background: rgba(255,255,255,0.1);
+    justify-content: flex-start;
+    border-radius: 100px;
+    align-items: center;
+    position: relative;
+    padding: 0 1px;
+    display: flex;
+    height: 12px;
+    width: 100%;
+}
 
+.progress-value {
+    box-shadow: 0 10px 40px -10px #fff;
+    border-radius: 100px;
+    background: #fff;
+    height: 11px;
+    width: 0%;
+    transition: width 0.2s;
+}
+
+@keyframes load {
+    0% {
+        width: 0;
+    }
+
+    100% {
+        width: 68%;
+    }
+}
 .btn-primary {
     color: #fff;
     background-color: #1b6ec2;

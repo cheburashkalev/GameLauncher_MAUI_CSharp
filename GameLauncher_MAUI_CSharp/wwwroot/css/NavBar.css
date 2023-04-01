@@ -14,6 +14,22 @@
     border-radius: 0px;
     border-left: 0.3rem solid #a4a4a4c4;
 }
+.nav-button-style2 {
+    border-radius: 0px;
+    border-top: 1.5px solid #ffffff7a;
+    display: flex;
+    justify-content: center;
+}
+
+.nav-button-style2.active {
+    border-radius: 0px;
+
+}
+
+.nav-button-style2:hover {
+    border-radius: 0px;
+    background-color:#ffffff25;
+}
 .nav-bar-item {
     padding-bottom: unset;
     padding-right: unset;

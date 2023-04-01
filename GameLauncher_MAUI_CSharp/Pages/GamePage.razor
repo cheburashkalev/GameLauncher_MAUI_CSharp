@@ -6,15 +6,27 @@
     width: 100%;
     -webkit-mask-image: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 50%, rgba(0,212,255,0) 100%);
 opacity: 0.3;
-    position:absolute;" />
-    <label style="padding-left:3rem;font-family: 'Inter-Bold';
+
+    position:fixed;" />
+    <div style="padding-left:3rem;
+padding-top: 3rem;position:relative;flex-direction: column;display: flex;align-items: flex-start;">
+    <label style="
+font-family: 'Inter-Bold';
 font-style: normal;
 font-weight: 700;
 font-size: 32px;
-line-height: 39px;">
-        Battle Chain
+line-height: 39px;
+padding-bottom:25px;
+">
+            @GameName
    </label>
-
+        <button class="btn btn-primary" style=" display: flex;align-items: center; font-family: 'Inter-Medium';	text-transform: uppercase; font-size: 12px;">
+      <img src="Resources\AppIcon\Downloadicon.svg" />
+      <div style="padding-left:10px"> 
+          Download
+      </div>
+    </button>
+    </div>
 }
 @code {
     string GameName = "Battle Chain";

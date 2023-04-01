@@ -1,0 +1,28 @@
+﻿@using GameLauncher_MAUI_CSharp.Pages.Elements;
+<div style="padding:3rem;font-family: 'Inter-Medium';">
+    <h3>Download Manager</h3>
+    <div style="display: flex;
+    justify-content: space-between;padding-top:1rem">
+        <div style="    display: flex;
+    justify-content: flex-start;">
+    Active downloads
+</div>
+        <div style="display: flex;
+    justify-content: flex-end;">
+            Limit download rate
+            <select style="margin-left:2rem;border: 1px solid #FFFFFF;
+border-radius: 16px;width: 140px;background: transparent;background-color: transparent; color:white">
+                <option value="Unlimited" style="background-color:#2f313c">Unlimited</option>
+                <option value="1mb/s" style="background-color:#2f313c">1mb/s</option>
+                <option value="2mb/s" style="background-color:#2f313c">2mb/s</option>
+                 </select>
+        </div>
+    </div>
+    <div style="padding-top:2rem;">
+    <E_DownloadCard></E_DownloadCard>
+    </div>
+</div>
+@page "/DownloadManager"
+@code {
+
+}

@@ -1,5 +1,5 @@
 ﻿
-
+<div style="font-family: 'Inter-Light';">
 <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
 	<nav class="flex-column">
 		<div class="nav-item nav-bar-item">
@@ -26,7 +26,17 @@
 <div style="padding-top:2rem;padding-left:0.75rem;">
 	Installed games
 </div>
+<NavLink class="nav-link nav-button-style2" href="DownloadManager" style="position: absolute;
+		bottom: 0;width:100%;border-radius: 0px;border-top:1.5px solid #ffffff7a;">
+<div style="padding-bottom:1rem;padding-right: 1rem; ">
 
+	<div style="padding-top:1rem;">
+			<img src="Resources\AppIcon\Downloadicon.svg" style="padding-right:20px " />Download manager
+</div>
+
+</div>
+</NavLink>
+</div>
 @code {
 	private bool collapseNavMenu = true;
 
