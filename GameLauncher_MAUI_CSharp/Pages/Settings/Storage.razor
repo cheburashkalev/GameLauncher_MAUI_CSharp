@@ -1,0 +1,77 @@
+﻿<div style="padding:1rem;">
+    <h3>Storage</h3>
+@page "/Settings_Storage"
+@using LiteDB;
+@if (LibrarysInfo != null)
+{
+    foreach (var Library in LibrarysInfo)
+    {
+          var disks = LauncherApp.GetAllDisks().ToList();
+            var a = disks.Find(x => x.RootDirectory == Library["RootDirectory"]);
+            <div class="storage">
+                @if(a != null)
+                {
+                    <div style="display: flex;">
+                        @if(a.Name != "")
+                        {
+                            @a.Name
+                        }
+                        else
+                        {
+                            <div>
+                              Local Disk
+                            </div>
+                        }
+                       
+                       
+                         <div style="padding-left:5px;">
+                             (@a.RootDirectory)
+                         </div>
+                    </div>
+                    <div>
+                    @FormatSpaceStorage(a.AvailableSpaceBytes,a.SizeBytes)
+                    </div>
+                }
+            </div>
+
+    } 
+}
+</div>
+@code {
+    IEnumerable<BsonDocument>? LibrarysInfo;
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {if (LibrarysInfo == null)
+            {
+                LibrarysInfo = LauncherApp.GetGameLibrarys();
+                StateHasChanged();
+            }
+        }
+        return base.OnAfterRenderAsync(firstRender);
+    }
+    static string FormatSpaceStorage(long bytesFree, long bytesBusy)
+    {
+        return FormatBytes(bytesFree) + " FREE OF " + FormatBytes(bytesBusy);
+    }
+    static string FormatBytes(long bytes)
+    {
+        // Определяем единицы измерения и соответствующие делители
+        string[] units = { "B", "KB", "MB", "GB", "TB", "PB" };
+        long[] dividers = { 1, 1024, 1024 * 1024, 1024 * 1024 * 1024, 1024L * 1024 * 1024 * 1024, 1024L * 1024 * 1024 * 1024 * 1024 };
+
+        // Находим подходящую единицу измерения
+        int unitIndex = 0;
+        while (unitIndex < units.Length - 1 && bytes >= dividers[unitIndex + 1])
+        {
+            unitIndex++;
+        }
+
+        // Вычисляем значение в выбранной единице измерения
+        double value = (double)bytes / dividers[unitIndex];
+
+        // Форматируем строку с двумя знаками после запятой и единицей измерения
+        return $"{value:F2} {units[unitIndex]}";
+    }
+
+}

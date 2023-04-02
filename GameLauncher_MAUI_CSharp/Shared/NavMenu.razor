@@ -1,22 +1,22 @@
-﻿
-<div style="font-family: 'Inter-Light';">
+﻿<div style="display: flex;">
+	<div style="font-family: 'Inter-Light';width:250px;">
 <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
 	<nav class="flex-column">
 		<div class="nav-item nav-bar-item">
-			<NavLink class="nav-link nav-button-style" href="" Match="NavLinkMatch.All" style="border-radius: 0px;">
+					<NavLink class="nav-link nav-button-style" href="" Match="NavLinkMatch.All" style="border-radius: 0px;" @onclick="SettingsClosed">
 
 				<img src="Resources\AppIcon\homeicon.svg" style="padding-right:0.75rem;" />
 				Home
 			</NavLink>
 		</div>
 		<div class="nav-item nav-bar-item">
-			<NavLink class="nav-link nav-button-style" href="Browse" style="border-radius: 0px;">
+					<NavLink class="nav-link nav-button-style" href="Browse" style="border-radius: 0px;"  @onclick="SettingsClosed">
 				<img src="Resources\AppIcon\browseicon.svg" style="padding-right:0.75rem;" />
 				Browse
 			</NavLink>
 		</div>
 		<div class="nav-item nav-bar-item">
-			<NavLink class="nav-link nav-button-style" href="Settings" style="border-radius: 0px;">
+					<NavLink class="nav-link nav-button-style" href=@LastOpenPageSettings style="border-radius: 0px;" @onclick="SettingsOpened">
 				<img src="Resources\AppIcon\libraryicon.svg" style="padding-right:0.75rem;" />
 				Settings
 			</NavLink>
@@ -27,7 +27,7 @@
 	Installed games
 </div>
 <NavLink class="nav-link nav-button-style2" href="DownloadManager" style="position: absolute;
-		bottom: 0;width:100%;border-radius: 0px;border-top:1.5px solid #ffffff7a;">
+		bottom: 0;width:250px;border-radius: 0px;border-top:1.5px solid #ffffff7a;">
 <div style="padding-bottom:1rem;padding-right: 1rem; ">
 
 	<div style="padding-top:1rem;">
@@ -37,13 +37,52 @@
 </div>
 </NavLink>
 </div>
+	<nav class="flex-column" style="width:250px;padding-left: 10px;padding-bottom: 100000%;background-color: #151724; @SettingsOpenCss">
+		<div class="nav-item nav-bar-item">
+			<NavLink class="nav-link nav-button-style" href="" Match="NavLinkMatch.All" style="border-radius: 0px;">
+
+				<img src="Resources\AppIcon\homeicon.svg" style="padding-right:0.75rem;" />
+				Home
+			</NavLink>
+		</div>
+		<div class="nav-item nav-bar-item">
+			<NavLink class="nav-link nav-button-style" href="Settings_Storage" style="border-radius: 0px;" @onclick="SettingsStorage">
+				<img src="Resources\AppIcon\libraryicon.svg" style="padding-right:0.75rem;" />
+				Storage
+			</NavLink>
+		</div>
+		<div class="nav-item nav-bar-item">
+			<NavLink class="nav-link nav-button-style" href="Settings_CustomReps" style="border-radius: 0px;" @onclick="SettingsReps">
+				<img src="Resources\AppIcon\libraryicon.svg" style="padding-right:0.75rem;" />
+				Repositories
+			</NavLink>
+		</div> 
+	</nav>
+</div>
 @code {
 	private bool collapseNavMenu = true;
-
+	private bool SettingsOpen = false;
 	private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
+	private string SettingsOpenCss => SettingsOpen ? null : "display: none;";
+	private string LastOpenPageSettings = "Settings_CustomReps";
 	private void ToggleNavMenu()
 	{
 		collapseNavMenu = !collapseNavMenu;
+	}
+	private void SettingsReps()
+	{
+		LastOpenPageSettings = "Settings_CustomReps";
+	}
+	private void SettingsStorage()
+	{
+		LastOpenPageSettings = "Settings_Storage";
+	}
+	private void SettingsOpened()
+	{
+		SettingsOpen = true;
+	}
+	private void SettingsClosed()
+	{
+		SettingsOpen = false;
 	}
 }

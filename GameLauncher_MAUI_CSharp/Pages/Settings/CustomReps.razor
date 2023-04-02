@@ -1,12 +1,9 @@
-﻿
-@page "/Settings"
+﻿@page "/Settings_CustomReps"
 @using Microsoft.Extensions.Logging
 @using System.ComponentModel.DataAnnotations;
 @using System.Diagnostics;
 @using GameLauncher_MAUI_CSharp.Pages.Elements;
-@inject ILogger<Settings> Logger
 @inject IJSRuntime JsRuntime
-@LauncherApp.test
 <div style="min-height:100%">
 <ul class="prev-next" style="align-items:center; display: flex; justify-content: space-between;padding-left:unset">
     <li style="display: flex; ">
@@ -18,6 +15,7 @@
             </button>
     </li>
 </ul>
+    </div>
 
 
 
@@ -43,7 +41,7 @@ else
 }
 
 <button class="btn btn-primary" @onclick="NewRepClicked">Add Rep</button>
-</div>
+
 @code {
     private string? SingButtonText = !(TorrentDownloader.client.Credentials == Credentials.Anonymous) ? "Log Out" : "log In";
     private List<RepModel> exampleModel = new();
@@ -68,17 +66,17 @@ else
         TorrentDownloader.TokenRecive = с_TokenReciveEvent;
 
     }
-    void с_TokenReciveEvent(object sender, TokenReciveEventArgs e) 
+    void с_TokenReciveEvent(object sender, TokenReciveEventArgs e)
     {
-       try
+        try
         {
             SingButtonText = !(TorrentDownloader.client.Credentials == Credentials.Anonymous) ? "Log Out" : "log In";
             // use this if engine idiot
             InvokeAsync(() => StateHasChanged());
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            
+
         }
 
     }
@@ -90,10 +88,5 @@ else
         StateHasChanged();
 
     }
-    private void HandleValidSubmit()
-    {
-        Logger.LogInformation("HandleValidSubmit called");
 
-        // Process the valid form
-    }
 }

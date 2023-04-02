@@ -45,7 +45,16 @@ public static class MauiProgram
         {if(cl.FindOne(x => x.AuthServise == "GitHub").token != null)
             TorrentDownloader.client.Credentials = new Credentials(cl.FindOne(x => x.AuthServise == "GitHub").token);
         }
-            var builder = MauiApp.CreateBuilder();
+        // First setup Library's Games
+        var ClFoldersLibraryX = LauncherApp.db.GetCollection("FoldersLibraryX");
+        var AppRootDir = Path.GetPathRoot(LauncherApp.GetAppDataDir());
+        var MainLibrary = ClFoldersLibraryX.FindOne(x => x["RootDirectory"].AsString == AppRootDir);
+        if (MainLibrary == null)
+        {
+            LauncherApp.SaveDirForDrive(AppRootDir, LauncherApp.MakeLibraryPath(LauncherApp.GetAppDataDir()));
+        }
+        ////End setup Library's Games
+        var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
 			.ConfigureFonts(fonts =>

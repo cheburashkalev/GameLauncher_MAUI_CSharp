@@ -16,6 +16,10 @@ public static class LauncherApp
 
     public static readonly LiteDatabase db = new LiteDatabase(GetDataBasePath());
 
+    public static string MakeLibraryPath(string path) 
+    {
+    return Path.Combine(path, "OpenXLiblary\\");
+    }
     public static string GetAppDataDir()
     {
         if (!Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XOpenLauncher\\")))
@@ -151,7 +155,7 @@ public static class LauncherApp
 
     public static void SaveDirForDrive(string RootDirectory, string LibraryFolder)
     {
-        BsonValue id = new BsonValue(new ObjectId());
+        BsonValue id = new BsonValue(ObjectId.NewObjectId());
         var cl = db.GetCollection("FoldersLibraryX");
         BsonDocument? Library = cl.FindOne(x => x["RootDirectory"].AsString == RootDirectory);
         if (!LibraryFolder.StartsWith(RootDirectory))
@@ -180,5 +184,10 @@ public static class LauncherApp
             }
         }
 
+    }
+    public static IEnumerable<BsonDocument>? GetGameLibrarys() 
+    {
+        var cl = db.GetCollection("FoldersLibraryX");
+        return cl.FindAll();
     }
 }
