@@ -17,16 +17,20 @@ a, .btn-link {
 }
 .storage {
     width: 300px;
-    height: 50px;
+    height: 60px;
     display: flex;
     padding: 0.5rem;
     flex-direction: column;
     font-family: Inter-Bold;
     justify-content: center;
-    border-radius:5px;
+    border-radius: 5px;
+    cursor: pointer;
 }
     .storage:hover {
         background-color: #ffffff12;
+    }
+   .storage.active,.storage:active {
+        background-color: #b5b5b58f;
     }
 .progress {
     background: rgba(255,255,255,0.1);

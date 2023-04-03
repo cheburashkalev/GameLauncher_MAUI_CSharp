@@ -1,44 +1,114 @@
-﻿<div style="padding:1rem;">
+﻿<div style="padding:1rem;position:absolute;">
     <h3>Storage</h3>
 @page "/Settings_Storage"
+@page "/Settings_Storage/{id_disk}"
 @using LiteDB;
-@if (LibrarysInfo != null)
-{
-    foreach (var Library in LibrarysInfo)
-    {
-          var disks = LauncherApp.GetAllDisks().ToList();
-            var a = disks.Find(x => x.RootDirectory == Library["RootDirectory"]);
-            <div class="storage">
-                @if(a != null)
-                {
-                    <div style="display: flex;">
-                        @if(a.Name != "")
-                        {
-                            @a.Name
-                        }
-                        else
-                        {
-                            <div>
-                              Local Disk
-                            </div>
-                        }
-                       
-                       
-                         <div style="padding-left:5px;">
-                             (@a.RootDirectory)
-                         </div>
-                    </div>
-                    <div>
-                    @FormatSpaceStorage(a.AvailableSpaceBytes,a.SizeBytes)
-                    </div>
-                }
-            </div>
+@inject NavigationManager MyNavigationManager
+    <div style="    display: flex;
+    align-items: center;">
+       @if (LibrarysInfo != null)
+       {
+               if (id_disk == null)
+               {
+                   id_disk = LibrarysInfo.FirstOrDefault()["_id"].AsObjectId.ToString();    
+               }
+               foreach (var Library in LibrarysInfo)
+           {
+                 var disks = LauncherApp.GetAllDisks().ToList();
+                   var a = disks.Find(x => x.RootDirectory == Library["RootDirectory"]);
+                   var id = Library["_id"].AsObjectId.ToString();
+                   string Page = $"Settings_Storage/{id}";
+                   string Class = id == id_disk ? "storage active" : "storage";
+                   <div id="@id" class="@Class" href="@Page" @onclick="x=>ChooseDisk(id)">
+                       @if(a != null)
+                       {
+                           <div style="display: flex;align-items: center;">
+                               <img src="../Resources/AppIcon/hdd.svg" style="width: 30px;
+           height: 30px;padding-right: 5px;" />
+       
+                             
+                                   <div>
+                                @GetNameDisk(a.Name)
+                                   </div>
+                               
+                              
+                              
+                                <div style="padding-left:5px;">
+                                    (@a.RootDirectory)
+                                </div>
+                           </div>
+                           <div>
+                           @FormatSpaceStorage(a.AvailableSpaceBytes,a.SizeBytes)
+                           </div>
+                       }
+                   </div>
+       
+           }
+            <button style="background:url('../../Resources/AppIcon/plus-circle.svg')no-repeat;background-position: center center;
+width: 35px;
+height: 35px;
+border: 2px solid #2869FF;border-radius:100px;
+margin-left: 10px;
+background-size: 23px;
+" @onclick="NewLibrary"></button>
 
-    } 
-}
+       }
+  </div>
+</div>
+<div style="position:absolute; width:100%;height:100%;background-color:#00000080;display: flex;justify-content: center;align-items: center;@Visibility">
+    <div style="border-radius:0.7rem;background-color:#1f2026;min-width:600px; min-height: 250px; max-width: 800px;">
+        <div style="display: flex;
+    font-family: 'Inter-Medium';
+    align-items: center;
+    padding: 15px;
+    font-size: 20px;
+    flex-direction: column;">
+        ADD A NEW XOPEN LIBRARY FOLDER
+            <select style="border: 0px solid #FFFFFF;
+    border-radius: 16px;
+    width: 90%;
+    height: 40px;
+    background: transparent;
+    background-color: #232532;
+    color: white;
+    font-family: 'Inter-Medium';
+    font-size: large;
+    margin-top: 5%;">
+                @if (LibrarysInfo != null)
+                {
+                    foreach (var disk in LauncherApp.GetAllDisks())
+                    {
+                        var library = LibrarysInfo.ToList().Find(x => x["RootDirectory"].AsString == disk.RootDirectory);
+                        if (library == null)
+                        {
+                            string content = GetNameDisk(disk.Name) + " (" + disk.RootDirectory + ") " + FormatSpaceStorage(disk.AvailableSpaceBytes, disk.SizeBytes);
+                            <option value="@disk.RootDirectory" style="background-color:#2f313c">
+                                @content
+                            </option>
+                        }
+                    }
+                }
+            </select>
+            <div style=" width: 90%;
+                 padding-top: 12%;
+                 display: flex;
+                 justify-content: space-between;
+                 flex-direction: row;">
+            <button class="btn btn-primary" style="
+    width: 40%;">Add</button>
+            <button class="btn btn-primary" style="
+    width: 40%;" @onclick="CloseMenuNewLibrary">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 @code {
+    [Parameter]
+    public string id_disk { get; set; }
     IEnumerable<BsonDocument>? LibrarysInfo;
+    string Visibility = "visibility:collapse";
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -49,6 +119,22 @@
             }
         }
         return base.OnAfterRenderAsync(firstRender);
+    }
+    void CloseMenuNewLibrary()
+    {
+        Visibility = "visibility:collapse";
+    }
+    string GetNameDisk(string? name)
+    {
+        return name != null ? name : "Local Disk";
+    }
+    void NewLibrary()
+    {
+        Visibility = null;
+    }
+    void ChooseDisk(string id)
+    {
+        MyNavigationManager.NavigateTo($"Settings_Storage/{id}");
     }
     static string FormatSpaceStorage(long bytesFree, long bytesBusy)
     {
