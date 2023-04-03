@@ -73,7 +73,7 @@ background-size: 23px;
     color: white;
     font-family: 'Inter-Medium';
     font-size: large;
-    margin-top: 5%;">
+    margin-top: 5%;" @bind="SelectedDiskForNewLibrary">
                 @if (LibrarysInfo != null)
                 {
                     foreach (var disk in LauncherApp.GetAllDisks())
@@ -81,6 +81,10 @@ background-size: 23px;
                         var library = LibrarysInfo.ToList().Find(x => x["RootDirectory"].AsString == disk.RootDirectory);
                         if (library == null)
                         {
+                            if (SelectedDiskForNewLibrary == "" || SelectedDiskForNewLibrary == null)
+                            {
+                                SelectedDiskForNewLibrary = disk.RootDirectory;
+                            }
                             string content = GetNameDisk(disk.Name) + " (" + disk.RootDirectory + ") " + FormatSpaceStorage(disk.AvailableSpaceBytes, disk.SizeBytes);
                             <option value="@disk.RootDirectory" style="background-color:#2f313c">
                                 @content
@@ -95,7 +99,9 @@ background-size: 23px;
                  justify-content: space-between;
                  flex-direction: row;">
             <button class="btn btn-primary" style="
-    width: 40%;">Add</button>
+    width: 40%;" @onclick="AddNewLibrary">
+                    Add
+                </button>
             <button class="btn btn-primary" style="
     width: 40%;" @onclick="CloseMenuNewLibrary">
                     Cancel
@@ -109,6 +115,7 @@ background-size: 23px;
     public string id_disk { get; set; }
     IEnumerable<BsonDocument>? LibrarysInfo;
     string Visibility = "visibility:collapse";
+    string SelectedDiskForNewLibrary { get; set; }
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -120,13 +127,19 @@ background-size: 23px;
         }
         return base.OnAfterRenderAsync(firstRender);
     }
+    void AddNewLibrary()
+    {
+        LauncherApp.SaveDirForDrive(SelectedDiskForNewLibrary, LauncherApp.MakeLibraryPath(SelectedDiskForNewLibrary));
+        Visibility = "visibility:collapse";
+        StateHasChanged();
+    }
     void CloseMenuNewLibrary()
     {
         Visibility = "visibility:collapse";
     }
     string GetNameDisk(string? name)
     {
-        return name != null ? name : "Local Disk";
+        return name != "" ? name : "Local Disk";
     }
     void NewLibrary()
     {

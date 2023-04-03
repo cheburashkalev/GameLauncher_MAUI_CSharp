@@ -163,6 +163,7 @@ public static class LauncherApp
             //TODO: Throw exception
             return;
         }
+        Directory.CreateDirectory(LibraryFolder);
         if (Library == null)
         {
             cl.Insert(id,
