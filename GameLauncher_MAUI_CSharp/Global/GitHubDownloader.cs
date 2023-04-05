@@ -22,7 +22,7 @@ public static class GitHubDownloader
         download.DownloadFileCompleted += DownloadFileCompleted;
         download.DownloadStarted += DownloadStarted;
 
-      await download.StartAsync();
+        download.StartAsync();
         return download;
     }
 

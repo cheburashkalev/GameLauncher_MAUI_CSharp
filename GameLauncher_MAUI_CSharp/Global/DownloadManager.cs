@@ -100,7 +100,11 @@ await GitHubDownloader.Download(
     (o, x) => { if (DownloadProgressChanged != null) DownloadProgressChanged.Invoke(new object(), new DownloadGameProgressEventArgs() { GameId = GameId, DownloadProgressArgs = x }); },
             async (o, x) =>
             {
-                DownloadList.Remove(new DownloadKey() { Gameid = GameId, PartDownload = partDownload });
+               var OldDownload = DownloadList.Keys.FirstOrDefault(x => x.Gameid == GameId && x.PartDownload == partDownload);
+                if (OldDownload != null)
+                {
+                    DownloadList.Remove(OldDownload);
+                }
                 await PartDownload(GameId, AllParts, CurrentDownload,SaveDir);
             },
     (o, x) => { if (DownloadGameStart != null) { DownloadGameStart.Invoke(new object(), new DownloadGameStartEventArgs() { GameId = GameId }); } }
