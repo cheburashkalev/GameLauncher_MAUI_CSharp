@@ -2,7 +2,7 @@
 using LiteDB;
 using Octokit;
 
-public static class DownloadManager
+public static class DownloadManagerS
 {
     public class DownloadGameStartEventArgs : EventArgs
     {
@@ -34,7 +34,7 @@ public static class DownloadManager
         var GameCashDB_File = releases.Find(x => x.Name.StartsWith("GameCashDB") && x.Name.EndsWith(".db"));
         var SaveDir = LauncherApp.db.GetCollection("FoldersLibraryX").FindById(selectedDisk);
         var CurrentDownloadsGame = DownloadList.ToList().FindAll(x => x.Key.Gameid == gameID);
-        if (CurrentDownloadsGame == null)
+        if (CurrentDownloadsGame.Count != 0)
         {
             return;
         }
@@ -59,7 +59,13 @@ public static class DownloadManager
         var PartsGameCashDB_File = releases.FindAll(x => x.Name.StartsWith("part_") && x.Name.EndsWith(".dat"));
         if (PartsGameCashDB_File != null)
         {
-            PartDownload(gameID, PartsGameCashDB_File, null, SaveDir).Start();
+            try
+            {
+                await PartDownload(gameID, PartsGameCashDB_File, null, SaveDir["LibraryFolder"].AsString);
+            }
+            catch (Exception e) 
+            {
+            }
         }
     }
     private static async Task PartDownload(ObjectId GameId, List<ReleaseAsset>? AllParts, ReleaseAsset? lastDownload,string SaveDir)
@@ -86,18 +92,18 @@ public static class DownloadManager
             {
                 CurrentDownload = AllParts.FirstOrDefault();
             }
-            DownloadList.Add(new DownloadKey() { Gameid = GameId, PartDownload = 0 },
+            DownloadList.Add(new DownloadKey() { Gameid = GameId, PartDownload = partDownload },
 await GitHubDownloader.Download(
     CurrentDownload.BrowserDownloadUrl,
-    $"GameCashDB_{GameId.ToString()}.db",
+    $"GameCashDB_{GameId.ToString()}_part{partDownload}.dat",
     SaveDir,
-    (o, x) => { DownloadProgressChanged.Invoke(new object(), new DownloadGameProgressEventArgs() { GameId = GameId, DownloadProgressArgs = x }); },
-            (o, x) =>
+    (o, x) => { if (DownloadProgressChanged != null) DownloadProgressChanged.Invoke(new object(), new DownloadGameProgressEventArgs() { GameId = GameId, DownloadProgressArgs = x }); },
+            async (o, x) =>
             {
                 DownloadList.Remove(new DownloadKey() { Gameid = GameId, PartDownload = partDownload });
-                PartDownload(GameId, AllParts, CurrentDownload,SaveDir).Start();
+                await PartDownload(GameId, AllParts, CurrentDownload,SaveDir);
             },
-    (o, x) => { DownloadGameStart.Invoke(new object(), new DownloadGameStartEventArgs() { GameId = GameId }); }
+    (o, x) => { if (DownloadGameStart != null) { DownloadGameStart.Invoke(new object(), new DownloadGameStartEventArgs() { GameId = GameId }); } }
     ));
         }
     }

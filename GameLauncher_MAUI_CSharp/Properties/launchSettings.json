@@ -1,14 +1,9 @@
 {
   "profiles": {
     "Windows Machine": {
-      "alwaysReinstallApp": true,
       "commandName": "MsixPackage",
+      "alwaysReinstallApp": false,
       "nativeDebugging": false
-    },
-    "Profile 1": {
-      "commandName": "Executable",
-      "jsWebView2Debugging": true,
-      "nativeDebugging": true
     }
   }
 }

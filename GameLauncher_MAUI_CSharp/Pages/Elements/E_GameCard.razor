@@ -171,6 +171,8 @@ opacity:@opacity;"/>
             var b64String = Convert.ToBase64String(byteArray);
             GamePageInfo.Base64Image1280_540 = "data:image/png;base64," + b64String;
         }
+        GamePageInfo.Release = Release;
+        GamePageInfo.GameID = Repositories.RepId;
         InfoDatabase.Dispose();
         NavigationManager.NavigateTo("GamePage", false);
     }

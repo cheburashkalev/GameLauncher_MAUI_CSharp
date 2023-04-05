@@ -1,4 +1,5 @@
 ﻿@page "/GamePage"
+@using LiteDB;
 @if (true)
 {
 
@@ -6,8 +7,65 @@
     width: 100%;
     -webkit-mask-image: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 50%, rgba(0,212,255,0) 100%);
 opacity: 0.3;
+position:fixed;" />
+    
+    <div style="position:absolute; width:100%;height:100%;background-color:#00000080;display: flex;justify-content: center;align-items: center;@Visibility">
+        <div style="border-radius:0.7rem;background-color:#1f2026;min-width:600px; min-height: 250px; max-width: 800px;">
+            <div style="display: flex;
+    font-family: 'Inter-Medium';
+    align-items: center;
+    padding: 15px;
+    font-size: 20px;
+    flex-direction: column;">
+                Choose location for install
+                <select style="border: 0px solid #FFFFFF;
+    border-radius: 16px;
+    width: 90%;
+    height: 40px;
+    background: transparent;
+    background-color: #232532;
+    color: white;
+    font-family: 'Inter-Medium';
+    font-size: large;
+    margin-top: 5%;" @bind="SelectedDiskForDownload">
+                    @if (LibrarysInfo != null)
+                    {
+                        foreach (var disk in LauncherApp.GetAllDisks())
+                        {
+                            var library = LibrarysInfo.ToList().Find(x => x["RootDirectory"].AsString == disk.RootDirectory);
+                            if (library != null)
+                            {
+                                if (FirstSetup)
+                                {
+                                    SelectedDiskForDownload = library["_id"].AsObjectId.ToString();
+                                    FirstSetup = false;
+                                }
+                                string content = GetNameDisk(disk.Name) + " (" + disk.RootDirectory + ") " + FormatSpaceStorage(disk.AvailableSpaceBytes, disk.SizeBytes);
+                                <option value="@library["_id"].AsObjectId.ToString()" style="background-color:#2f313c">
+                                    @content
+                                </option>
+                            }
+                        }
+                    }
+                </select>
+                <div style=" width: 90%;
+                 padding-top: 12%;
+                 display: flex;
+                 justify-content: space-between;
+                 flex-direction: row;">
+                    <button class="btn btn-primary" style="
+    width: 40%;" @onclick="StartDownload">
+                        OK
+                    </button>
+                    <button class="btn btn-primary" style="
+    width: 40%;" @onclick="CloseMenuDownload">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    position:fixed;" />
     <div style="padding-left:3rem;
 padding-top: 3rem;position:relative;flex-direction: column;display: flex;align-items: flex-start;">
     <label style="
@@ -20,7 +78,7 @@ padding-bottom:25px;
 ">
             @GameName
    </label>
-        <button class="btn btn-primary" style=" display: flex;align-items: center; font-family: 'Inter-Medium';	text-transform: uppercase; font-size: 12px;">
+        <button @onclick="OpenDownloadMenu" class="btn btn-primary" style=" display: flex;align-items: center; font-family: 'Inter-Medium';	text-transform: uppercase; font-size: 12px;">
       <img src="Resources\AppIcon\Downloadicon.svg" />
       <div style="padding-left:10px"> 
           Download
@@ -28,6 +86,69 @@ padding-bottom:25px;
     </button>
     </div>
 }
+
 @code {
     string GameName = "Battle Chain";
+    string Visibility = "visibility:collapse";
+    ObjectId SelectedDiskForDownloadObject = ObjectId.NewObjectId();
+    string SelectedDiskForDownload { get { return SelectedDiskForDownloadObject.ToString(); } set { SelectedDiskForDownloadObject = new ObjectId(value); } }
+    bool FirstSetup = true;
+    IEnumerable<BsonDocument>? LibrarysInfo;
+    void OpenDownloadMenu()
+    {
+        Visibility = null;
+    }
+    string GetNameDisk(string? name)
+    {
+        return name != "" ? name : "Local Disk";
+    }
+    void StartDownload()
+    {
+        var task = DownloadManagerS.DownloadGame(GamePageInfo.GameID, GamePageInfo.Release, SelectedDiskForDownloadObject);
+        Visibility = "visibility:collapse";
+    }
+    void CloseMenuDownload()
+    {
+        Visibility = "visibility:collapse";
+    }
+    static string FormatSpaceStorage(long bytesFree, long bytesBusy)
+    {
+        return FormatBytes(bytesFree) + " FREE OF " + FormatBytes(bytesBusy);
+    }
+    static string FormatBytes(long bytes)
+    {
+        // Определяем единицы измерения и соответствующие делители
+        string[] units = { "B", "KB", "MB", "GB", "TB", "PB" };
+        long[] dividers = { 1, 1024, 1024 * 1024, 1024 * 1024 * 1024, 1024L * 1024 * 1024 * 1024, 1024L * 1024 * 1024 * 1024 * 1024 };
+
+        // Находим подходящую единицу измерения
+        int unitIndex = 0;
+        while (unitIndex < units.Length - 1 && bytes >= dividers[unitIndex + 1])
+        {
+            unitIndex++;
+        }
+
+        // Вычисляем значение в выбранной единице измерения
+        double value = (double)bytes / dividers[unitIndex];
+
+        // Форматируем строку с двумя знаками после запятой и единицей измерения
+        return $"{value:F2} {units[unitIndex]}";
+    }
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (LibrarysInfo == null)
+            {
+                var FindedGameDownloader = DownloadManagerS.DownloadList.ToList().Find(x => x.Key.Gameid == GamePageInfo.GameID);
+                /*if (FindedGameDownloader != null)
+                {
+                    
+                }*/
+                LibrarysInfo = LauncherApp.GetGameLibrarys();
+                StateHasChanged();
+            }
+        }
+        return base.OnAfterRenderAsync(firstRender);
+    }
 }
