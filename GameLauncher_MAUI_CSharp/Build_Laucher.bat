@@ -1,0 +1,1 @@
+dotnet publish GameLauncher_MAUI_CSharp.csproj -f net7.0-windows10.0.22000.0 -c Release /p:RuntimeIdentifierOverride=win10-x64

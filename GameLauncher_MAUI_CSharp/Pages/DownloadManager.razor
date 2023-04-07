@@ -1,4 +1,5 @@
 ﻿@using GameLauncher_MAUI_CSharp.Pages.Elements;
+@using LiteDB;
 <div style="padding:3rem;font-family: 'Inter-Medium';">
     <h3>Download Manager</h3>
     <div style="display: flex;
@@ -19,10 +20,43 @@ border-radius: 16px;width: 140px;background: transparent;background-color: trans
         </div>
     </div>
     <div style="padding-top:2rem;">
-    <E_DownloadCard></E_DownloadCard>
+        @if (GamesDownloadingArr != null)
+        {
+            foreach (var g in GamesDownloadingArr)
+            {
+        <E_DownloadCard GameId="@g"></E_DownloadCard>
+            }
+        }
     </div>
 </div>
 @page "/DownloadManager"
 @code {
-
+    List<ObjectId> GamesDownloadingArr = new();
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CheckNewDownloads();
+            PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+            while (await timer.WaitForNextTickAsync())
+            {
+                await CheckNewDownloads();
+            }
+        }
+    }
+    async Task CheckNewDownloads()
+    {
+        if (GamesDownloadingArr.Count() != DownloadManagerS.DownloadList.Count())
+        {
+            GamesDownloadingArr.Clear();
+            foreach (var d in DownloadManagerS.DownloadList)
+            {
+                if (!GamesDownloadingArr.Contains(d.Key.Gameid))
+                {
+                    GamesDownloadingArr.Add(d.Key.Gameid);
+                }
+            }
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
 }

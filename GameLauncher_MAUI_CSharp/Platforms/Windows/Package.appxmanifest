@@ -8,7 +8,7 @@
   xmlns:iot="http://schemas.microsoft.com/appx/manifest/iot/windows10"
   IgnorableNamespaces="uap rescap iot">
 
-  <Identity Name="maui-package-name-placeholder" Publisher="CN=User Name" Version="0.0.3.0" />
+  <Identity Name="maui-package-name-placeholder" Publisher="CN=CheburashkaLev" Version="0.0.9.0" />
 
   <mp:PhoneIdentity PhoneProductId="514D94B0-D6D4-4864-88C4-6AC2B1E59DA5" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

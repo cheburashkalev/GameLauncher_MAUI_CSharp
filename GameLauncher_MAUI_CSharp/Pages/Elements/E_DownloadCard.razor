@@ -1,10 +1,11 @@
-﻿<div style="height:180px;width:100%;background-color:#00000031;padding:1rem;display: flex;font-family: 'Inter-Bold';">
+﻿@using LiteDB;
+<div style="height:180px;width:100%;background-color:#00000031;padding:1rem;display: flex;font-family: 'Inter-Bold';">
     <img style="background-color:aliceblue;width:100px;height:150px;border-radius:10px;min-height:150px;min-width:100px;"/>
     <div style="padding-left:2rem;width: 80%;">
     Batle Chain
         <div style="margin-top:2rem;display:flex;align-items: center;">
         <div class="progress" style="width:80%" >
-            <div class="progress-value"></div>
+                <div class="progress-value" style="width:@ProgressDownloadPersent"></div>
         </div>
         <div style="padding-left:10px">
                 <button style="background:url(../../Resources/AppIcon/pauseicon.svg) no-repeat;background-position: center center;width:15px;height:15px;border: 1.5px solid #2869FF;border-radius:3px">
@@ -22,7 +23,7 @@
             </div>
             <div style=" display: flex;
     justify-content: flex-end">
-                40%
+                @ProgressDownloadPersent
             </div>
          
     </div>
@@ -31,5 +32,69 @@
 </div>
 
 @code {
+    [Parameter]
+    public ObjectId GameId { get; set; }
+    long Downloaded = 0;
+    string ProgressDownloadPersent = "";
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (GameId != null)
+            {
+                DownloadManagerS.DownloadGameStart += BindDownloadStart;
+                DownloadManagerS.DownloadGameComplite += BindDownloadEnd;
+                DownloadManagerS.DownloadProgressChanged += BindDownloadProgress;
+                PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+                while (await timer.WaitForNextTickAsync())
+                {
+                    
+                        await InvokeAsync(() => StateHasChanged());
+                }
+            }
+        }
+    }
+    void BindDownloadStart(object? o, DownloadManagerS.DownloadGameStartEventArgs args)
+    {
+        if (args.GameId == GameId)
+        {
+            //InvokeAsync(() => StateHasChanged());
+        }
+    }
+    void BindDownloadEnd(object? o, DownloadManagerS.DownloadGameCompliteEventArgs args)
+    {
+        if (args.GameId == GameId)
+        {
 
+            // InvokeAsync(() => StateHasChanged());
+        }
+    }
+    void BindDownloadProgress(object? o, DownloadManagerS.DownloadGameProgressEventArgs args)
+    {
+        if (args.GameId == GameId)
+        {
+            long DownloadedLoc = 0;
+            if (args.Part == 0)
+            {
+
+                DownloadedLoc = args.DownloadProgressArgs.ReceivedBytesSize;
+
+            }
+            else
+            {
+                var SortedParts = DownloadManagerS.GetSortedPartsGame(GamePageInfo.Release.Assets);
+                for (int i = 0; i != args.Part; i++)
+                {
+                    DownloadedLoc += SortedParts[i].Size;
+                }
+
+                DownloadedLoc += args.DownloadProgressArgs.ReceivedBytesSize;
+
+
+            }
+            Downloaded = DownloadedLoc;
+            long persent = (Downloaded / (DownloadManagerS.GameSize(args.GameAssets) / 100));
+            ProgressDownloadPersent = persent.ToString() + "%";
+        }
+    }
 }

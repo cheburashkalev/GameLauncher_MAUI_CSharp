@@ -247,3 +247,124 @@ a, .btn-link {
         box-shadow: 40px 40px 40px #575757fa, 0 0 0 #ffffff, 0 0 0 #cccccc inset, 2px 2px 2px #ffffff inset;
     }
 }
+:root {
+    --BackgroundLoadingAnim1: #dcdcd2;
+    --SpeedLoadingAnim1: 3s; /* change speed */
+}
+.LoadingAnim1 {
+    width: 18px;
+    height: 18px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    perspective: 0px;
+}
+
+.bars {
+    position: absolute;
+    padding: 6px 6px;
+    animation: mirror1 calc(var(--SpeedLoadingAnim1) * 2) ease 0s infinite;
+}
+
+    .bars + .bars {
+        transform: rotate(90deg) rotateX(180deg);
+        animation: mirror2 calc(var(--SpeedLoadingAnim1) * 2) ease calc(var(--SpeedLoadingAnim1) / 2) infinite;
+    }
+
+.bar {
+    width: 18px;
+    height: 3px;
+    margin: 2px 0px;
+    background: linear-gradient(90deg, #fff0 33%, var(--BackgroundLoadingAnim1) 33% 67%, #fff0 67% 100%);
+    animation: grow var(--SpeedLoadingAnim1) ease-in-out 0s infinite alternate;
+    background-size: 300%;
+    background-position-x: -203%;
+}
+
+@keyframes mirror1 {
+    0%, 47%, 99.99%, 100% {
+        transform: rotate(180deg) rotateX(0deg);
+    }
+
+    47.01%, 99.98% {
+        transform: rotate(180deg) rotateX(180deg);
+    }
+}
+
+@keyframes mirror2 {
+    0%, 47%, 99.99%, 100% {
+        transform: rotate(90deg) rotateX(180deg);
+    }
+
+    47.01%, 99.98% {
+        transform: rotate(90deg) rotateX(0deg);
+    }
+}
+
+@keyframes grow {
+    0%, 25% {
+        background-position-x: -300%;
+    }
+
+    45%, 55% {
+        background-position-x: -250%;
+    }
+
+    75%, 100% {
+        background-position-x: -200%;
+    }
+}
+
+.bar:nth-child(2) {
+    animation-delay: calc(var(--SpeedLoadingAnim1) * -0.02);
+}
+
+.bar:nth-child(3) {
+    animation-delay: calc(var(--SpeedLoadingAnim1) * -0.04);
+}
+
+.bar:nth-child(4) {
+    animation-delay: calc(var(--SpeedLoadingAnim1) * -0.06);
+}
+
+.bar:nth-child(5) {
+    animation-delay: calc(var(--SpeedLoadingAnim1) * -0.08);
+}
+
+.bar:nth-child(6) {
+    animation-delay: calc(var(--SpeedLoadingAnim1) * -0.1);
+}
+
+.bar:nth-child(7) {
+    animation-delay: calc(var(--SpeedLoadingAnim1) * -0.12);
+}
+
+.bars:nth-child(2) .bar:nth-child(1) {
+    animation-delay: calc(calc(var(--SpeedLoadingAnim1) * -0.001) - calc(var(--SpeedLoadingAnim1) / 2));
+}
+
+.bars:nth-child(2) .bar:nth-child(2) {
+    animation-delay: calc(calc(var(--SpeedLoadingAnim1) * -0.02) - calc(var(--SpeedLoadingAnim1) / 2));
+}
+
+.bars:nth-child(2) .bar:nth-child(3) {
+    animation-delay: calc(calc(var(--SpeedLoadingAnim1) * -0.04) - calc(var(--SpeedLoadingAnim1) / 2));
+}
+
+.bars:nth-child(2) .bar:nth-child(4) {
+    animation-delay: calc(calc(var(--SpeedLoadingAnim1) * -0.06) - calc(var(--SpeedLoadingAnim1) / 2));
+}
+
+.bars:nth-child(2) .bar:nth-child(5) {
+    animation-delay: calc(calc(var(--SpeedLoadingAnim1) * -0.08) - calc(var(--SpeedLoadingAnim1) / 2));
+}
+
+.bars:nth-child(2) .bar:nth-child(6) {
+    animation-delay: calc(calc(var(--SpeedLoadingAnim1) * -0.1) - calc(var(--SpeedLoadingAnim1) / 2));
+}
+
+.bars:nth-child(2) .bar:nth-child(7) {
+    animation-delay: calc(calc(var(--SpeedLoadingAnim1) * -0.12) - calc(var(--SpeedLoadingAnim1) / 2));
+}

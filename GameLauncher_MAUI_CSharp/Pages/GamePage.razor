@@ -9,7 +9,7 @@
 opacity: 0.3;
 position:fixed;" />
     
-    <div style="position:absolute; width:100%;height:100%;background-color:#00000080;display: flex;justify-content: center;align-items: center;@Visibility">
+    <div style="position:absolute; width:100%;height:100%;background-color:#00000080;display: flex;justify-content: center;align-items: center;@VisibilityDownloadMenu">
         <div style="border-radius:0.7rem;background-color:#1f2026;min-width:600px; min-height: 250px; max-width: 800px;">
             <div style="display: flex;
     font-family: 'Inter-Medium';
@@ -72,31 +72,104 @@ padding-top: 3rem;position:relative;flex-direction: column;display: flex;align-i
 font-family: 'Inter-Bold';
 font-style: normal;
 font-weight: 700;
-font-size: 32px;
+font-size: 40px;
 line-height: 39px;
 padding-bottom:25px;
 ">
             @GameName
    </label>
-        <button @onclick="OpenDownloadMenu" class="btn btn-primary" style=" display: flex;align-items: center; font-family: 'Inter-Medium';	text-transform: uppercase; font-size: 12px;">
-      <img src="Resources\AppIcon\Downloadicon.svg" />
-      <div style="padding-left:10px"> 
-          Download
-      </div>
-    </button>
+        <div style="position: relative;
+    display: flex;
+    align-items: center;">
+
+        @if (ProgramDownloading)
+        {
+        <button class="btn btn-primary" style=" display: flex;align-items: center; font-family: 'Inter-Medium';	text-transform: uppercase; font-size: 16px;">
+            
+                <div class="LoadingAnim1">
+                    <div class="bars">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+                <div class="bars">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+            </div>
+                <div style="padding-left:10px">
+                    Pause
+                </div>
+            </button>
+                <div style="margin-left:10px;font-family: 'Inter-Medium';font-size:small">
+
+                    DOWNLOADING
+                    <div class="progress" style="width:150px;height:7px">
+                        <div class="progress-value" style="width:@ProgressDownloadPersent"></div>
+                    </div>
+                    <div>
+                        @FormatDownloadStorage(Downloaded,GameSize())
+                    </div>
+
+                </div>
+        }
+        else
+        {
+                <button @onclick="OpenDownloadMenu" class="btn btn-primary" style=" display: flex;align-items: center; font-family: 'Inter-Medium';	text-transform: uppercase; font-size: 16px;">
+            <img src="Resources\AppIcon\Downloadicon.svg" />
+            <div style="padding-left:10px">
+                Download
+            </div>
+            </button>
+                <div style="margin-left:10px;font-family: 'Inter-Medium';font-size:small">
+
+                    Space Requared
+                <div>
+                 @FormatBytes(GameSize())
+                </div>
+            </div>
+        }
+        </div>
     </div>
 }
 
 @code {
     string GameName = "Battle Chain";
-    string Visibility = "visibility:collapse";
+    string VisibilityDownloadMenu = "visibility:collapse";
+    bool ProgramDownloading { get; set; } = false;
     ObjectId SelectedDiskForDownloadObject = ObjectId.NewObjectId();
     string SelectedDiskForDownload { get { return SelectedDiskForDownloadObject.ToString(); } set { SelectedDiskForDownloadObject = new ObjectId(value); } }
     bool FirstSetup = true;
+    long Downloaded = 0;
+    string ProgressDownloadPersent = "0%";
     IEnumerable<BsonDocument>? LibrarysInfo;
+
+    long GameSize()
+    {
+        long Size = 0;
+        var PartsGame = GamePageInfo.Release.Assets.Where(x => x.Name.EndsWith(".dat") && x.Name.StartsWith("part"));
+        if (PartsGame.Count() != 0)
+        {
+            foreach(var part in PartsGame)
+            {
+                Size += part.Size;   
+            }
+            return Size;
+        }
+        var GameCash = GamePageInfo.Release.Assets.First(x=>x.Name.EndsWith(".db") && x.Name.StartsWith("GameCashDB"));
+        if (GameCash != null)
+        {
+            return GameCash.Size;    
+        }
+        return 0;
+    }
+
     void OpenDownloadMenu()
     {
-        Visibility = null;
+        VisibilityDownloadMenu = null;
     }
     string GetNameDisk(string? name)
     {
@@ -105,15 +178,19 @@ padding-bottom:25px;
     void StartDownload()
     {
         var task = DownloadManagerS.DownloadGame(GamePageInfo.GameID, GamePageInfo.Release, SelectedDiskForDownloadObject);
-        Visibility = "visibility:collapse";
+        VisibilityDownloadMenu = "visibility:collapse";
     }
     void CloseMenuDownload()
     {
-        Visibility = "visibility:collapse";
+        VisibilityDownloadMenu = "visibility:collapse";
     }
     static string FormatSpaceStorage(long bytesFree, long bytesBusy)
     {
         return FormatBytes(bytesFree) + " FREE OF " + FormatBytes(bytesBusy);
+    }
+    static string FormatDownloadStorage(long bytesDownload, long bytesSizeGame)
+    {
+        return FormatBytes(bytesDownload) + " OF " + FormatBytes(bytesSizeGame);
     }
     static string FormatBytes(long bytes)
     {
@@ -134,21 +211,79 @@ padding-bottom:25px;
         // Форматируем строку с двумя знаками после запятой и единицей измерения
         return $"{value:F2} {units[unitIndex]}";
     }
-    protected override Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             if (LibrarysInfo == null)
             {
-                var FindedGameDownloader = DownloadManagerS.DownloadList.ToList().Find(x => x.Key.Gameid == GamePageInfo.GameID);
-                /*if (FindedGameDownloader != null)
+                var FindedGameDownloader = DownloadManagerS.DownloadList.FirstOrDefault(x => x.Key.Gameid == GamePageInfo.GameID);
+                DownloadManagerS.DownloadGameStart += BindDownloadStart;
+                DownloadManagerS.DownloadGameComplite += BindDownloadEnd;
+                DownloadManagerS.DownloadProgressChanged += BindDownloadProgress;
+                if (FindedGameDownloader.Value != null)
                 {
-                    
-                }*/
+                    ProgramDownloading = true;
+                }
                 LibrarysInfo = LauncherApp.GetGameLibrarys();
-                StateHasChanged();
+                PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+                while (await timer.WaitForNextTickAsync())
+                {
+                    if (ProgramDownloading)
+                        await InvokeAsync(() => StateHasChanged());
+                }
+
+
             }
         }
-        return base.OnAfterRenderAsync(firstRender);
+
+    }
+    void BindDownloadStart(object? o, DownloadManagerS.DownloadGameStartEventArgs args)
+    {
+        if (args.GameId == GamePageInfo.GameID)
+        {
+            ProgramDownloading = true;
+            InvokeAsync(() => StateHasChanged());
+
+        }
+    }
+    void BindDownloadEnd(object? o, DownloadManagerS.DownloadGameCompliteEventArgs args)
+    {
+        if (args.GameId == GamePageInfo.GameID)
+        {
+            ProgramDownloading = false;
+            InvokeAsync(() => StateHasChanged());
+        }
+    }
+    void BindDownloadProgress(object? o, DownloadManagerS.DownloadGameProgressEventArgs args)
+    {
+        if (args.GameId == GamePageInfo.GameID)
+        {
+            long DownloadedLoc = 0;
+            if (args.Part == 0)
+            {
+
+                DownloadedLoc = args.DownloadProgressArgs.ReceivedBytesSize;
+
+            }
+            else 
+            {
+                var SortedParts = DownloadManagerS.GetSortedPartsGame(GamePageInfo.Release.Assets);
+                for (int i = 0; i != args.Part;i++)
+                {
+                    DownloadedLoc += SortedParts[i].Size;
+                }
+
+                DownloadedLoc += args.DownloadProgressArgs.ReceivedBytesSize;
+
+
+            }
+            Downloaded = DownloadedLoc;
+            long persent = (Downloaded / (GameSize()/100));
+            ProgressDownloadPersent = persent.ToString() + "%";
+            
+            
+
+        }
     }
 }
