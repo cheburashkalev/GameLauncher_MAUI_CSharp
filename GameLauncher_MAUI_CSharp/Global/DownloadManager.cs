@@ -131,6 +131,8 @@ public static class DownloadManagerS
                     PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
                     while (!stopTimer)
                     {
+                        //тут проблема
+                        //состояние сшивания не меняется
                         await timer.WaitForNextTickAsync();
                         var gamedownloadlist = DownloadList.Where(x => x.Key.Gameid == GameId);
                         if (gamedownloadlist != null && gamedownloadlist.Count() == gamedownloadlist.Where(x=>x.Value.UnpackState == UnpackState.Completed).Count())
