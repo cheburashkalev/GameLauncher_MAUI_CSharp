@@ -108,7 +108,10 @@ padding-bottom:25px;
 
                     DOWNLOADING
                     <div class="progress" style="width:150px;height:7px">
-                        <div class="progress-value" style="width:@ProgressDownloadPersent"></div>
+                        <div class="progress-value" style="position: absolute;
+    background-color: #3f619b;
+width:@ProgressDownloadPersent"></div>
+                        <div class="progress-value" style="position: absolute;background-color: #598ee7; width:@ProgressCombinePersent"></div>
                     </div>
                     <div>
                         @FormatDownloadStorage(Downloaded,GameSize())
@@ -145,6 +148,7 @@ padding-bottom:25px;
     bool FirstSetup = true;
     long Downloaded = 0;
     string ProgressDownloadPersent = "0%";
+    string ProgressCombinePersent = "0%";
     IEnumerable<BsonDocument>? LibrarysInfo;
 
     long GameSize()
@@ -177,6 +181,8 @@ padding-bottom:25px;
     }
     void StartDownload()
     {
+        ProgressDownloadPersent = "0%";
+        ProgressCombinePersent = "0%";
         var task = DownloadManagerS.DownloadGame(GamePageInfo.GameID, GamePageInfo.Release, SelectedDiskForDownloadObject);
         VisibilityDownloadMenu = "visibility:collapse";
     }
@@ -221,6 +227,51 @@ padding-bottom:25px;
                 DownloadManagerS.DownloadGameStart += BindDownloadStart;
                 DownloadManagerS.DownloadGameComplite += BindDownloadEnd;
                 DownloadManagerS.DownloadProgressChanged += BindDownloadProgress;
+                DownloadManagerS.CombineFileStart += (o, e) => 
+                {
+                    if (e.GameId == GamePageInfo.GameID)
+                    {
+                        ProgramDownloading = true;
+                        InvokeAsync(() => StateHasChanged());
+                    }
+                };
+                DownloadManagerS.CombineFileComplite += (o, e) =>
+                {
+                    if (e.GameId == GamePageInfo.GameID)
+                    {
+
+                    }
+                };
+                DownloadManagerS.CombineFileProgress += (o, e) =>
+                {
+                    if (e.GameId == GamePageInfo.GameID)
+                    {
+                        ProgramDownloading = true;
+                        var SortedParts = DownloadManagerS.GetSortedPartsGame(GamePageInfo.Release.Assets);
+                        long DownloadedLoc = 0;
+                        long size = 0;
+                        if (e.Part == 0)
+                        {
+                            size = SortedParts[0].Size;
+                            DownloadedLoc = size * e.ProgressPercent / DownloadManagerS.GameSize(GamePageInfo.Release.Assets);
+                            ProgressCombinePersent = DownloadedLoc.ToString() + "%";
+                            return;
+                        }
+                        else
+                        {
+                            for (int i = 0; i != e.Part; i++)
+                            {
+                                size = SortedParts[i].Size;
+                                DownloadedLoc += size * 100 / DownloadManagerS.GameSize(GamePageInfo.Release.Assets);
+                            }
+                            size = SortedParts[e.Part].Size;
+                            DownloadedLoc += size * e.ProgressPercent / DownloadManagerS.GameSize(GamePageInfo.Release.Assets);
+                            ProgressCombinePersent = DownloadedLoc.ToString() + "%";
+                            return;
+                        }
+                        
+                    }
+                };
                 if (FindedGameDownloader.Value != null)
                 {
                     ProgramDownloading = true;

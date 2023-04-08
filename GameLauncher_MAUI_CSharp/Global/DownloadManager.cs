@@ -42,6 +42,7 @@ public static class DownloadManagerS
     {
         public ObjectId GameId { get; set; }
         public int ProgressPercent { get; set; }
+        public int Part { get; set;}
     }
     public class CombineFileEndEventArgs : EventArgs
     {
@@ -65,6 +66,9 @@ public static class DownloadManagerS
     public static event EventHandler<DownloadGameProgressEventArgs> DownloadProgressChanged;
     public static event EventHandler<DownloadGameStartEventArgs> DownloadGameStart;
     public static event EventHandler<DownloadGameCompliteEventArgs> DownloadGameComplite;
+    public static event EventHandler<CombineFileStartEventArgs> CombineFileStart;
+    public static event EventHandler<CombineFileProgressEventArgs> CombineFileProgress;
+    public static event EventHandler<CombineFileEndEventArgs> CombineFileComplite;
     public static Dictionary<DownloadKey, DownloadValue> DownloadList = new();
     // public static Dictionary<ObjectId,>
     public static async Task DownloadGame(ObjectId gameID, Release release, ObjectId selectedDisk)
@@ -139,6 +143,7 @@ public static class DownloadManagerS
                             {
                                 DownloadList.Remove(gamedownload.Key);
                             }
+                            if(DownloadGameComplite !=null)
                             DownloadGameComplite.Invoke(new object(), new DownloadGameCompliteEventArgs() { GameId = GameId });
                             stopTimer = true;
                         }
@@ -255,20 +260,27 @@ new DownloadValue()
             if (fileInfo.Exists && fileInfo.Extension == ".dat")
             {
                 DownloadPart.Value.UnpackState = UnpackState.Created;
-                DownloadList[downloadKey] = DownloadPart.Value;
+
+                if(CombineFileStart != null)
+                CombineFileStart.Invoke(new object(), new CombineFileStartEventArgs() { GameId = downloadKey.Gameid });
                 using (FileStream sourceStream = new FileStream(PartFile, System.IO.FileMode.Open))
                 {
                     byte[] buffer = new byte[1024 * 1024];
                     int bytesRead;
                     DownloadPart.Value.UnpackState = UnpackState.Running;
-                    DownloadList[downloadKey] = DownloadPart.Value;
+
+                    long current_size = 0;
                     while ((bytesRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
                     {
-                       await destinationStream.WriteAsync(buffer, 0, bytesRead);
+                        current_size += bytesRead;
+                        if (CombineFileProgress != null)
+                        CombineFileProgress.Invoke(new object(), new CombineFileProgressEventArgs() { GameId = downloadKey.Gameid, ProgressPercent = Convert.ToInt32(current_size / (fileInfo.Length/100)),Part= DownloadPart.Key.PartDownload});
+                        await destinationStream.WriteAsync(buffer, 0, bytesRead);
                     }
                 }
                 DownloadPart.Value.UnpackState = UnpackState.Completed;
-                DownloadList[downloadKey] = DownloadPart.Value;
+                if(CombineFileComplite != null)
+                CombineFileComplite.Invoke(new object(), new CombineFileEndEventArgs() { GameId = downloadKey.Gameid });
                 fileInfo.Delete();
             }
         }
