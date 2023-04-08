@@ -131,8 +131,6 @@ public static class DownloadManagerS
                     PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
                     while (!stopTimer)
                     {
-                        //тут проблема
-                        //состояние сшивания не меняется
                         await timer.WaitForNextTickAsync();
                         var gamedownloadlist = DownloadList.Where(x => x.Key.Gameid == GameId);
                         if (gamedownloadlist != null && gamedownloadlist.Count() == gamedownloadlist.Where(x=>x.Value.UnpackState == UnpackState.Completed).Count())
@@ -177,7 +175,7 @@ new DownloadValue()
                         
                         if (OldDownload.Key != null && OldDownload.Value.downloadIntf.Status == DownloadStatus.Completed)
                         {
-                            OldDownload = DownloadList.FirstOrDefault(x => x.Key.Gameid == GameId);
+                            OldDownload = DownloadList.FirstOrDefault(x => x.Key.Gameid == GameId && x.Key.PartDownload == partDownload);
                             await CombineFile(SaveDir + $"GameCashDB_{GameId.ToString()}_part{partDownload}.dat", SaveDir + $"GameCashDB_{GameId.ToString()}.db", OldDownload.Key);
                             stopTimer = true;
 
