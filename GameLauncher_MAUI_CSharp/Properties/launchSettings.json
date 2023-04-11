@@ -2,7 +2,6 @@
   "profiles": {
     "Windows Machine": {
       "commandName": "MsixPackage",
-      "alwaysReinstallApp": false,
       "nativeDebugging": false
     }
   }

@@ -1,10 +1,7 @@
 ﻿using Downloader;
 using LiteDB;
 using Octokit;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
-using Windows.Gaming.Input;
 
 
 public static class DownloadManagerS
@@ -42,14 +39,14 @@ public static class DownloadManagerS
     {
         public ObjectId GameId { get; set; }
         public int ProgressPercent { get; set; }
-        public int Part { get; set;}
+        public int Part { get; set; }
     }
     public class CombineFileEndEventArgs : EventArgs
     {
         public ObjectId GameId { get; set; }
-        
+
     }
-    public enum UnpackState 
+    public enum UnpackState
     {
         None = 0,
         Created = 1,
@@ -57,11 +54,27 @@ public static class DownloadManagerS
         Completed = 3,
         Failed = 4
     }
-    public class DownloadValue 
+    //InstallProcess
+    public class InstallStartEventArgs : EventArgs
     {
-       public IDownload downloadIntf { get; set; }
-       public UnpackState UnpackState { get; set; }
+        public ObjectId GameId { get; set; }
+    }
+    public class InstallProgressEventArgs : EventArgs
+    {
+        public ObjectId GameId { get; set; }
+        public int ProgressPercent { get; set; }
+        public int Part { get; set; }
+    }
+    public class InstallEndEventArgs : EventArgs
+    {
+        public ObjectId GameId { get; set; }
 
+    }
+    public class DownloadValue
+    {
+        public IDownload downloadIntf { get; set; }
+        public UnpackState UnpackState { get; set; }
+        public UnpackState InstallState { get; set; }
     }
     public static event EventHandler<DownloadGameProgressEventArgs> DownloadProgressChanged;
     public static event EventHandler<DownloadGameStartEventArgs> DownloadGameStart;
@@ -69,6 +82,9 @@ public static class DownloadManagerS
     public static event EventHandler<CombineFileStartEventArgs> CombineFileStart;
     public static event EventHandler<CombineFileProgressEventArgs> CombineFileProgress;
     public static event EventHandler<CombineFileEndEventArgs> CombineFileComplite;
+    public static event EventHandler<InstallStartEventArgs> InstallStart;
+    public static event EventHandler<InstallProgressEventArgs> InstallProgress;
+    public static event EventHandler<InstallEndEventArgs> InstallComplite;
     public static Dictionary<DownloadKey, DownloadValue> DownloadList = new();
     // public static Dictionary<ObjectId,>
     public static async Task DownloadGame(ObjectId gameID, Release release, ObjectId selectedDisk)
@@ -84,7 +100,7 @@ public static class DownloadManagerS
         }
         if (GameCashDB_File != null)
         {
-            DownloadList.Add(new DownloadKey() { Gameid = gameID, PartDownload = 0 },new DownloadValue()
+            DownloadList.Add(new DownloadKey() { Gameid = gameID, PartDownload = 0 }, new DownloadValue()
             {
                 downloadIntf =
             await GitHubDownloader.Download(
@@ -111,12 +127,12 @@ public static class DownloadManagerS
             {
                 await PartDownload(gameID, PartsGameCashDB_File, null, SaveDir["LibraryFolder"].AsString);
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
             }
         }
     }
-    private static async Task PartDownload(ObjectId GameId, List<ReleaseAsset>? AllParts, ReleaseAsset? lastDownload,string SaveDir)
+    private static async Task PartDownload(ObjectId GameId, List<ReleaseAsset>? AllParts, ReleaseAsset? lastDownload, string SaveDir)
     {
         if (AllParts != null)
         {
@@ -131,23 +147,37 @@ public static class DownloadManagerS
                     CurrentDownload = AllParts[partDownload];
                 }
                 else
-                {bool stopTimer = false;
+                {
+                    bool stopTimer = false;
                     PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
                     while (!stopTimer)
                     {
                         await timer.WaitForNextTickAsync();
                         var gamedownloadlist = DownloadList.Where(x => x.Key.Gameid == GameId);
-                        if (gamedownloadlist != null && gamedownloadlist.Count() == gamedownloadlist.Where(x=>x.Value.UnpackState == UnpackState.Completed).Count())
+                        if (gamedownloadlist != null && gamedownloadlist.Count() == gamedownloadlist.Where(x => x.Value.UnpackState == UnpackState.Completed).Count())
                         {
+                            await InstallFile($"{SaveDir}GameCashDB_{GameId.ToString()}.db", $"{SaveDir + GameId.ToString()}\\", GameId);
+                            stopTimer = true;
+                        }
+
+                    }
+                    stopTimer = false;
+                    while (!stopTimer)
+                    {
+                        await timer.WaitForNextTickAsync();
+                        var gamedownloadlist = DownloadList.Where(x => x.Key.Gameid == GameId);
+                        if (gamedownloadlist != null && gamedownloadlist.Count() == gamedownloadlist.Where(x => x.Value.UnpackState == UnpackState.Completed && x.Value.InstallState == UnpackState.Completed).Count())
+                        {
+
                             foreach (var gamedownload in gamedownloadlist)
                             {
                                 DownloadList.Remove(gamedownload.Key);
                             }
-                            if(DownloadGameComplite !=null)
-                            DownloadGameComplite.Invoke(new object(), new DownloadGameCompliteEventArgs() { GameId = GameId });
+                            if (DownloadGameComplite != null)
+                                DownloadGameComplite.Invoke(new object(), new DownloadGameCompliteEventArgs() { GameId = GameId });
                             stopTimer = true;
                         }
-                        
+
                     }
                     return;
                     //провести тут установку игры
@@ -173,11 +203,12 @@ new DownloadValue()
                 {
                     bool stopTimer = false;
                     PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+
                     while (!stopTimer)
                     {
                         await timer.WaitForNextTickAsync();
                         var OldDownload = DownloadList.FirstOrDefault(x => x.Key.Gameid == GameId && x.Key.PartDownload == partDownload - 1 && x.Value.UnpackState == UnpackState.Completed);
-                        
+
                         if (OldDownload.Key != null && OldDownload.Value.downloadIntf.Status == DownloadStatus.Completed)
                         {
                             OldDownload = DownloadList.FirstOrDefault(x => x.Key.Gameid == GameId && x.Key.PartDownload == partDownload);
@@ -188,28 +219,29 @@ new DownloadValue()
                     }
                     timer.Dispose();
                 }
-                else 
+                else
                 {
                     var OldDownload = DownloadList.FirstOrDefault(x => x.Key.Gameid == GameId && x.Key.PartDownload == partDownload);
 
-                    await CombineFile(SaveDir+$"GameCashDB_{GameId.ToString()}_part{partDownload}.dat", SaveDir + $"GameCashDB_{GameId.ToString()}.db", OldDownload.Key);
+                    await CombineFile(SaveDir + $"GameCashDB_{GameId.ToString()}_part{partDownload}.dat", SaveDir + $"GameCashDB_{GameId.ToString()}.db", OldDownload.Key);
 
                 }
 
             },
     (o, x) => { if (DownloadGameStart != null) { DownloadGameStart.Invoke(new object(), new DownloadGameStartEventArgs() { GameId = GameId }); } }
-    ),UnpackState = UnpackState.None,
+    ),
+    UnpackState = UnpackState.None,
 });
         }
     }
-    public static IReadOnlyList<ReleaseAsset> GetSortedPartsGame(IReadOnlyList<ReleaseAsset> releaseAssets) 
+    public static IReadOnlyList<ReleaseAsset> GetSortedPartsGame(IReadOnlyList<ReleaseAsset> releaseAssets)
     {
-      var PartsAssets = releaseAssets.Where(x => x.Name.StartsWith("part_") && x.Name.EndsWith(".dat"));
+        var PartsAssets = releaseAssets.Where(x => x.Name.StartsWith("part_") && x.Name.EndsWith(".dat"));
         string pattern = @"\d+";
 
         // Create a Regex object with the pattern
         Regex regex = new Regex(pattern);
-        PartsAssets.ToList().Sort((x,y)=> 
+        PartsAssets.ToList().Sort((x, y) =>
         {
             // Try to find a match in the first string
             Match mx = regex.Match(x.Name);
@@ -250,10 +282,10 @@ new DownloadValue()
         }
         return 0;
     }
-    public static async Task CombineFile(string PartFile, string destinationFile,DownloadKey downloadKey)
+    public static async Task CombineFile(string PartFile, string destinationFile, DownloadKey downloadKey)
     {
-       var DownloadPart = DownloadList.FirstOrDefault(x => x.Key == downloadKey);
-        
+        var DownloadPart = DownloadList.FirstOrDefault(x => x.Key == downloadKey);
+
         using (FileStream destinationStream = new FileStream(destinationFile, System.IO.FileMode.Append))
         {
             FileInfo fileInfo = new FileInfo(PartFile);
@@ -261,8 +293,8 @@ new DownloadValue()
             {
                 DownloadPart.Value.UnpackState = UnpackState.Created;
 
-                if(CombineFileStart != null)
-                CombineFileStart.Invoke(new object(), new CombineFileStartEventArgs() { GameId = downloadKey.Gameid });
+                if (CombineFileStart != null)
+                    CombineFileStart.Invoke(new object(), new CombineFileStartEventArgs() { GameId = downloadKey.Gameid });
                 using (FileStream sourceStream = new FileStream(PartFile, System.IO.FileMode.Open))
                 {
                     byte[] buffer = new byte[1024 * 1024];
@@ -274,14 +306,51 @@ new DownloadValue()
                     {
                         current_size += bytesRead;
                         if (CombineFileProgress != null)
-                        CombineFileProgress.Invoke(new object(), new CombineFileProgressEventArgs() { GameId = downloadKey.Gameid, ProgressPercent = Convert.ToInt32(current_size / (fileInfo.Length/100)),Part= DownloadPart.Key.PartDownload});
+                            CombineFileProgress.Invoke(new object(), new CombineFileProgressEventArgs() { GameId = downloadKey.Gameid, ProgressPercent = Convert.ToInt32(current_size / (fileInfo.Length / 100)), Part = DownloadPart.Key.PartDownload });
                         await destinationStream.WriteAsync(buffer, 0, bytesRead);
                     }
                 }
                 DownloadPart.Value.UnpackState = UnpackState.Completed;
-                if(CombineFileComplite != null)
-                CombineFileComplite.Invoke(new object(), new CombineFileEndEventArgs() { GameId = downloadKey.Gameid });
+                if (CombineFileComplite != null)
+                    CombineFileComplite.Invoke(new object(), new CombineFileEndEventArgs() { GameId = downloadKey.Gameid });
                 fileInfo.Delete();
+            }
+        }
+    }
+    private static async Task InstallFile(string GameCashDB_Path, string PathInstall, ObjectId GameId)
+    {
+        LiteDatabase GameDB = new LiteDatabase(GameCashDB_Path);
+        ILiteStorage<string> storage = GameDB.GetStorage<string>("GameFiles", "GameFileChunks");
+        var AllFiles = storage.FindAll();
+        bool stopWhile = false;
+        while (!stopWhile)
+        {
+            var file = AllFiles.FirstOrDefault();
+            if (file != null)
+            {
+                try
+                {
+                    System.IO.FileInfo Prefile = new System.IO.FileInfo(PathInstall + file.Metadata["relativePath"].AsString);
+                    Prefile.Directory.Create();
+                    file.SaveAs(PathInstall + file.Metadata["relativePath"].AsString);
+                    storage.Delete(file.Id);
+                }
+                catch(Exception x) 
+                {
+
+                }
+
+            }
+            else
+            {
+                var GamePack = DownloadList.Where(x => x.Key.Gameid == GameId);
+                foreach (var part in GamePack)
+                {
+                    part.Value.InstallState = UnpackState.Completed;
+                }
+                GameDB.Dispose();
+                File.Delete(GameCashDB_Path);
+                stopWhile = true;
             }
         }
     }

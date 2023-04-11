@@ -5,7 +5,10 @@
     Batle Chain
         <div style="margin-top:2rem;display:flex;align-items: center;">
         <div class="progress" style="width:80%" >
-                <div class="progress-value" style="width:@ProgressDownloadPersent"></div>
+                <div class="progress-value" style="position: absolute;
+    background-color: #3f619b;width:@ProgressDownloadPersent"> </div>
+                <div class="progress-value" style="position: absolute;
+    background-color: #598ee7;width:@ProgressCombinePersent"> </div>
         </div>
         <div style="padding-left:10px">
                 <button style="background:url(../../Resources/AppIcon/pauseicon.svg) no-repeat;background-position: center center;width:15px;height:15px;border: 1.5px solid #2869FF;border-radius:3px">
@@ -35,7 +38,8 @@
     [Parameter]
     public ObjectId GameId { get; set; }
     long Downloaded = 0;
-    string ProgressDownloadPersent = "";
+    string ProgressDownloadPersent = "0%";
+    string ProgressCombinePersent = "0%";
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -45,6 +49,50 @@
                 DownloadManagerS.DownloadGameStart += BindDownloadStart;
                 DownloadManagerS.DownloadGameComplite += BindDownloadEnd;
                 DownloadManagerS.DownloadProgressChanged += BindDownloadProgress;
+                DownloadManagerS.CombineFileStart += (o, e) =>
+               {
+                   if (e.GameId == GamePageInfo.GameID)
+                   {
+                       
+                   }
+               };
+                DownloadManagerS.CombineFileComplite += (o, e) =>
+                {
+                    if (e.GameId == GamePageInfo.GameID)
+                    {
+
+                    }
+                };
+                DownloadManagerS.CombineFileProgress += (o, e) =>
+                {
+                    if (e.GameId == GamePageInfo.GameID)
+                    {
+                        
+                        var SortedParts = DownloadManagerS.GetSortedPartsGame(GamePageInfo.Release.Assets);
+                        long DownloadedLoc = 0;
+                        long size = 0;
+                        if (e.Part == 0)
+                        {
+                            size = SortedParts[0].Size;
+                            DownloadedLoc = size * e.ProgressPercent / DownloadManagerS.GameSize(GamePageInfo.Release.Assets);
+                            ProgressCombinePersent = DownloadedLoc.ToString() + "%";
+                            return;
+                        }
+                        else
+                        {
+                            for (int i = 0; i != e.Part; i++)
+                            {
+                                size = SortedParts[i].Size;
+                                DownloadedLoc += size * 100 / DownloadManagerS.GameSize(GamePageInfo.Release.Assets);
+                            }
+                            size = SortedParts[e.Part].Size;
+                            DownloadedLoc += size * e.ProgressPercent / DownloadManagerS.GameSize(GamePageInfo.Release.Assets);
+                            ProgressCombinePersent = DownloadedLoc.ToString() + "%";
+                            return;
+                        }
+
+                    }
+                };
                 PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
                 while (await timer.WaitForNextTickAsync())
                 {

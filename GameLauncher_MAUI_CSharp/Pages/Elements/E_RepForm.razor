@@ -4,13 +4,15 @@
 
 
 <div style="padding-bottom:1rem;">
-<ul style="margin-bottom: unset;padding-left: unset;"><li style="width:30%;display:inline-block;">User </li><li style="width:30%;display:inline-block;">Rep </li> </ul>
-    <form @onsubmit="UserSubmit" style="width:30%;display:inline-block;">
-    <input class="@modFormUser" @bind-value="model.NameB" />
-    </form>
-    <form @onsubmit="RepSubmit" style="width:30%;display:inline-block;">
-    <input class="@modFormRep" @bind-value="model.repB" />
-</form>
+    <ul style="margin-bottom: unset;padding-left: unset;"><li style="width:30%;display:inline-block;">User </li>
+        <li style="width:30%;display:inline-block;">Rep </li>
+       </ul>
+       <form @onsubmit="UserSubmit" style="width:30%;display:inline-block;">
+         <input class="@modFormUser" @bind-value="model.NameB" />
+       </form>
+       <form @onsubmit="RepSubmit" style="width:30%;display:inline-block;">
+         <input class="@modFormRep" @bind-value="model.repB" />
+       </form>
 </div>
 @code {
     [Parameter]
