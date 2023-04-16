@@ -28,7 +28,7 @@
           <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.22000.0</SupportedOSPlatformVersion>
         <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.19044.0</TargetPlatformMinVersion>
          <UserSecretsId>9f759c3a-94fc-4eee-9e36-259b7eb84d1d</UserSecretsId>
-        <Platforms>AnyCPU;x64</Platforms>
+        <Platforms>x64</Platforms>
         <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
         <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
         <AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
@@ -38,7 +38,7 @@
 		<AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
 		<PackageCertificateThumbprint>50A14DE53649EA3729407DFEA5D5BE4006331865</PackageCertificateThumbprint>
 		<AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
-        <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+        <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
         
     </PropertyGroup>
 
@@ -71,6 +71,7 @@
       <PackageReference Include="MonoTorrent" Version="3.0.0-beta.rev0159" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3-beta1" />
       <PackageReference Include="Octokit" Version="5.0.2" />
+      <PackageReference Include="System.Management" Version="7.0.1" />
       <PackageReference Include="System.Security.Permissions" Version="7.0.0" />
       <PackageReference Include="websocket-sharp-Net6.0" Version="1.0.3.1" />
     </ItemGroup>

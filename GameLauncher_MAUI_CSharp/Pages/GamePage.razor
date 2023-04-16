@@ -113,23 +113,53 @@ padding-bottom:25px;
                     </div>
 
                 </div>
-        }
-        else
-        {
-                <button @onclick="OpenDownloadMenu" class="btn btn-primary" style=" display: flex;align-items: center; font-family: 'Inter-Medium';	text-transform: uppercase; font-size: 16px;">
-            <img src="Resources\AppIcon\Downloadicon.svg" />
-            <div style="padding-left:10px">
-                Download
-            </div>
-            </button>
-                <div style="margin-left:10px;font-family: 'Inter-Medium';font-size:small">
+            }
+            else
+            {
+                switch (LauncherApp.RunningApps.ContainsKey(GamePageInfo.GameID))
+                {
+                    case true:
+                        <button @onclick="x=>LauncherApp.CloseInstalledApp(GamePageInfo.GameID)" class="btn btn-primary" style=" display: flex;align-items: center; font-family: 'Inter-Medium';	text-transform: uppercase; font-size: 16px;">
+                            <img src="Resources\AppIcon\Downloadicon.svg" />
+                            <div style="padding-left:10px">
+                                Stop
+                            </div>
+                        </button>
+                        break;
+                    case false:
+                           UpdateState = DownloadManagerS.CheckUpdate(GamePageInfo.GameID);
+                           switch (UpdateState.Code)
+                           {
+                               case 0:
+                                   <button @onclick="OpenDownloadMenu" class="btn btn-primary" style=" display: flex;align-items: center; font-family: 'Inter-Medium';	text-transform: uppercase; font-size: 16px;">
+                                       <img src="Resources\AppIcon\Downloadicon.svg" />
+                                       <div style="padding-left:10px">
+                                           Download
+                                       </div>
+                                   </button>
+                                   <div style="margin-left:10px;font-family: 'Inter-Medium';font-size:small">
+                           
+                                       Space Requared
+                                       <div>
+                                           @FormatBytes(GameSize())
+                                       </div>
+                                   </div>
+                                   break;
+                               case 2:
+                                   string args = "";
+                                   <button @onclick="x=>LauncherApp.StartInstalledApp(GamePageInfo.GameID,args)" class="btn btn-primary" style=" display: flex;align-items: center; font-family: 'Inter-Medium';	text-transform: uppercase; font-size: 16px;">
+                                       <img src="Resources\AppIcon\Downloadicon.svg" />
+                                       <div style="padding-left:10px">
+                                           Play
+                                       </div>
+                                      </button>
+                                      break;
+                          
+                           }
+                        break;
+                }
 
-                    Space Requared
-                <div>
-                 @FormatBytes(GameSize())
-                </div>
-            </div>
-        }
+            }
         </div>
     </div>
 }
@@ -144,6 +174,7 @@ padding-bottom:25px;
     long Downloaded = 0;
     string ProgressDownloadPersent = "0%";
     string ProgressCombinePersent = "0%";
+    DownloadManagerS.UpdateInfo? UpdateState;
     IEnumerable<BsonDocument>? LibrarysInfo;
 
     long GameSize()

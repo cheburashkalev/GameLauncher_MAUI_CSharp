@@ -1,6 +1,8 @@
 ﻿using Downloader;
+using GameLauncher_MAUI_CSharp.Code.TorrentLib;
 using LiteDB;
 using Octokit;
+using System.Collections;
 using System.Text.RegularExpressions;
 
 
@@ -125,14 +127,14 @@ public static class DownloadManagerS
         {
             try
             {
-                await PartDownload(gameID, PartsGameCashDB_File, null, SaveDir["LibraryFolder"].AsString);
+                await PartDownload(gameID, PartsGameCashDB_File, null,release, SaveDir["LibraryFolder"].AsString);
             }
             catch (Exception e)
             {
             }
         }
     }
-    private static async Task PartDownload(ObjectId GameId, List<ReleaseAsset>? AllParts, ReleaseAsset? lastDownload, string SaveDir)
+    private static async Task PartDownload(ObjectId GameId, List<ReleaseAsset>? AllParts, ReleaseAsset? lastDownload, Release release, string SaveDir)
     {
         if (AllParts != null)
         {
@@ -157,6 +159,12 @@ public static class DownloadManagerS
                         if (gamedownloadlist != null && gamedownloadlist.Count() == gamedownloadlist.Where(x => x.Value.UnpackState == UnpackState.Completed).Count())
                         {
                             await InstallFile($"{SaveDir}GameCashDB_{GameId.ToString()}.db", $"{SaveDir + GameId.ToString()}\\", GameId);
+                            var cl = LauncherApp.db.GetCollection("BrowseInfo");
+                            var id = new BsonValue(GameId);
+                            BsonDocument BrowseInfo = cl.FindById(id);
+                            BrowseInfo["GameDataUpdate"] = new BsonValue(release.PublishedAt.Value.ToUnixTimeSeconds());
+                            cl.Update(BrowseInfo);
+                            LauncherApp.AddGameId(Path.GetPathRoot(SaveDir), GameId);
                             stopTimer = true;
                         }
 
@@ -198,7 +206,7 @@ new DownloadValue()
             async (o, x) =>
             {
 
-                PartDownload(GameId, AllParts, CurrentDownload, SaveDir);
+                PartDownload(GameId, AllParts, CurrentDownload,release, SaveDir);
                 if (partDownload > 0)
                 {
                     bool stopTimer = false;
@@ -335,7 +343,7 @@ new DownloadValue()
                     file.SaveAs(PathInstall + file.Metadata["relativePath"].AsString);
                     storage.Delete(file.Id);
                 }
-                catch(Exception x) 
+                catch (Exception x)
                 {
 
                 }
@@ -352,6 +360,75 @@ new DownloadValue()
                 File.Delete(GameCashDB_Path);
                 stopWhile = true;
             }
+        }
+    }
+    public class UpdateInfo
+    {
+        public int Code { get; set; }
+        public IEnumerable<Release>? UpdateList { get; set; }
+    }
+    /// <summary>
+    /// 0 -> //can download without update
+    /// 1 -> //no one reliase in Repository. Owner Error
+    /// 2 -> //no one Update Game. Just Play!!!
+    /// 3 -> //update avalible
+    /// 4 -> //No info about game in App
+    /// 5 -> //Check Error
+    /// 6 -> //no one reliase in Repository. But can run Game
+    /// </summary>
+    /// <param name="GameId"></param>
+    /// <returns></returns>
+    public static UpdateInfo CheckUpdate(ObjectId GameId)
+    {
+       
+        UpdateInfo updateInfo = new();
+        try
+        {
+            var cl = LauncherApp.db.GetCollection("BrowseInfo");
+            BsonDocument BrowseInfo = cl.FindById(GameId);
+            if (BrowseInfo != null)
+            {
+                var GameDataUpdate = BrowseInfo["GameDataUpdate"].AsInt64;
+
+                if (GameDataUpdate == 0)
+                {
+                    updateInfo.Code = 0;
+                    return updateInfo;//can download without update
+                }
+                var LocRepository = LauncherApp.db.GetCollection<Repositories>("Repositories").FindById(GameId);
+                var Repository_ = TorrentDownloader.client.Repository.Release.GetAll(LocRepository.User, LocRepository.Rep);
+                Repository_.Wait();
+                var CurrentReliase = Repository_.Result.FirstOrDefault(x=>x.PublishedAt.Value.ToUnixTimeSeconds() == GameDataUpdate);
+                if (CurrentReliase == null) 
+                {
+                    if (GameDataUpdate == 0)
+                        updateInfo.Code = 1;//no one reliase in Repository. Owner Error
+                    else
+                        updateInfo.Code = 6;//no one reliase in Repository. But can run Game
+                    return updateInfo;
+                }
+                var NewReliases = Repository_.Result.Where(x => x.PublishedAt.Value.ToUnixTimeSeconds() > GameDataUpdate);
+                if (NewReliases.Count() == 0)
+                {
+                    updateInfo.Code = 2;
+                    return updateInfo; //no one Update Game. Just Play!!!
+                }
+                else 
+                {
+                    updateInfo.Code = 3;
+                    updateInfo.UpdateList = NewReliases;
+                    return updateInfo;//update avalible
+                }
+            }
+            else {
+                updateInfo.Code = 4;
+                return updateInfo;//No info about game in App
+            }
+        }
+        catch(Exception ex)
+        {
+            updateInfo.Code = 5;
+            return updateInfo;//Check Error
         }
     }
 }

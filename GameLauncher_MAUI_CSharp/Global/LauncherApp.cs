@@ -1,10 +1,13 @@
 ﻿using GameLauncher_MAUI_CSharp.Data;
 using LiteDB;
 using Microsoft.Win32;
+using System.Diagnostics;
+using System.Management;
 using System.Net;
 using System.Net.NetworkInformation;
 using WebSocketSharp;
 using WebSocketSharp.Server;
+using Windows.Storage;
 
 public static class LauncherApp
 {
@@ -16,17 +19,18 @@ public static class LauncherApp
 
     public static readonly LiteDatabase db = new LiteDatabase(GetDataBasePath());
 
-    public static string MakeLibraryPath(string path) 
+    public static string MakeLibraryPath(string path)
     {
-    return Path.Combine(path, "OpenXLiblary\\");
+        return Path.Combine(path, "OpenXLiblary\\");
     }
     public static string GetAppDataDir()
     {
-        if (!Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XOpenLauncher\\")))
+        string appData = ApplicationData.Current.LocalCacheFolder.Path;
+        if (!Directory.Exists(Path.Combine(appData, "XOpenLauncher\\")))
         {
-            Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XOpenLauncher\\"));
+            Directory.CreateDirectory(Path.Combine(appData, "XOpenLauncher\\"));
         }
-        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XOpenLauncher\\");
+        return Path.Combine(appData, "XOpenLauncher\\");
     }
     public static string GetDataBasePath() => Path.Combine(GetAppDataDir(), "app.db");
 
@@ -36,13 +40,16 @@ public static class LauncherApp
         DriveInfo[] allDrives = DriveInfo.GetDrives();
         foreach (DriveInfo drive in allDrives)
         {
-            result.Add(new DiskInfo()
+            if (drive.IsReady && drive.DriveType == DriveType.Fixed)
             {
-                Name = drive.VolumeLabel,
-                RootDirectory = drive.RootDirectory.FullName,
-                SizeBytes = drive.TotalSize,
-                AvailableSpaceBytes = drive.AvailableFreeSpace
-            });
+                result.Add(new DiskInfo()
+                {
+                    Name = drive.VolumeLabel,
+                    RootDirectory = drive.RootDirectory.FullName,
+                    SizeBytes = drive.TotalSize,
+                    AvailableSpaceBytes = drive.AvailableFreeSpace
+                });
+            }
         }
         return result;
     }
@@ -115,7 +122,7 @@ public static class LauncherApp
 
     public static void AddGameId(string RootDirectory, ObjectId GameId)
     {
-        BsonValue gameIdBson = new BsonValue(new ObjectId());
+        BsonValue gameIdBson = new BsonValue(GameId);
         ILiteCollection<BsonDocument> cl = LauncherApp.db.GetCollection("FoldersLibraryX");
         BsonDocument? Library = cl.FindOne(x => x["RootDirectory"].AsString == RootDirectory);
         if (Library == null)
@@ -184,11 +191,61 @@ public static class LauncherApp
                 cl.Update(id, Library);
             }
         }
-
     }
-    public static IEnumerable<BsonDocument>? GetGameLibrarys() 
+    public static IEnumerable<BsonDocument>? GetGameLibrarys()
     {
         var cl = db.GetCollection("FoldersLibraryX");
         return cl.FindAll();
+    }
+    public static Dictionary<ObjectId, Process> RunningApps = new();
+    public static async Task<bool> StartInstalledApp(ObjectId AppID, string arg)
+    {
+        try
+        {
+            string path = Path.Combine(LauncherApp.GetAppDataDir(), AppID.ToString() + ".db");
+            LiteDatabase InfoDatabase = new LiteDatabase(path);
+            var a = GetGameLibrarys();
+            var aa = a.FirstOrDefault(x => x["GameIds"].AsArray.FirstOrDefault(x => x.AsObjectId.ToString() == AppID.ToString()).IsObjectId);
+            using (var managementClass = new ManagementClass("Win32_Process"))
+            {
+                var processInfo = new ManagementClass("Win32_ProcessStartup");
+                processInfo.Properties["CreateFlags"].Value = 0x00000008; // DETACHED_PROCESS flag
+
+                var inParameters = managementClass.GetMethodParameters("Create");
+                var b = Path.GetFullPath(aa["LibraryFolder"].AsString + AppID.ToString() + "\\" + InfoDatabase.GetCollection("Info").FindOne(x => true)["Exe"].AsString);
+                var aaa = @"""" + b + @""" " + arg;
+                string appData = ApplicationData.Current.LocalCacheFolder.Path;
+                inParameters["CommandLine"] = aaa;
+                inParameters["ProcessStartupInformation"] = processInfo;
+
+                var result = managementClass.InvokeMethod("Create", inParameters, null);
+                InfoDatabase.Dispose();
+
+                var returnStart = (uint)result.Properties["ReturnValue"].Value;
+                if ((result != null) && returnStart == 0 && returnStart != 9)
+                {
+                    var NewProcess = Process.GetProcessById(Convert.ToInt32(result.Properties["ProcessId"].Value));
+
+                    RunningApps.Add(AppID, NewProcess);
+                    return true;
+                }
+                return false;
+            }
+        }
+        catch
+        {
+            return false;
+        }
+    }
+    public static async Task<bool> CloseInstalledApp(ObjectId AppID)
+    {
+        try
+        {
+            RunningApps.TryGetValue(AppID, out var app);
+            app?.Kill();
+            RunningApps.Remove(AppID);
+            return true;
+        }
+        catch { return false; }
     }
 }
