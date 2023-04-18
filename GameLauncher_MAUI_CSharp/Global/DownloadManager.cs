@@ -2,7 +2,6 @@
 using GameLauncher_MAUI_CSharp.Code.TorrentLib;
 using LiteDB;
 using Octokit;
-using System.Collections;
 using System.Text.RegularExpressions;
 
 
@@ -89,7 +88,43 @@ public static class DownloadManagerS
     public static event EventHandler<InstallEndEventArgs> InstallComplite;
     public static Dictionary<DownloadKey, DownloadValue> DownloadList = new();
     // public static Dictionary<ObjectId,>
-    public static async Task DownloadGame(ObjectId gameID, Release release, ObjectId selectedDisk)
+    public static async Task DownloadUpdate(ObjectId AppID, UpdateInfo UpdateInfo)
+    {
+        var a = LauncherApp.GetGameLibrarys();
+        var aa = a.FirstOrDefault(x => x["GameIds"].AsArray.FirstOrDefault(x => x.AsObjectId.ToString() == AppID.ToString()).IsObjectId);
+        var instelled_path = aa["LibraryFolder"].AsString + AppID.ToString() + "\\";
+        var CurrentDownloadsGame = DownloadList.ToList().FindAll(x => x.Key.Gameid == AppID);
+        if (CurrentDownloadsGame.Count != 0)
+        {
+            return;
+        }
+        Release release = null;
+        foreach (var x in UpdateInfo.UpdateList)
+        {
+            if (release == null)
+            {
+                release = x;
+                continue;
+            }
+            if (release.PublishedAt < x.PublishedAt)
+            {
+                release = x;
+                continue;
+            }
+        }
+        var PartsGameCashDB_File = release.Assets.Where(x => x.Name.StartsWith("part_") && x.Name.EndsWith(".dat"));
+        if (PartsGameCashDB_File != null)
+        {
+            try
+            {
+                await PartDownload(AppID, PartsGameCashDB_File.ToList(), null, release, aa["LibraryFolder"].AsString, true);
+            }
+            catch (Exception e)
+            {
+            }
+        }
+    }
+    public static async Task DownloadGame(ObjectId gameID, Release release, ObjectId selectedDisk,bool Update)
     {
         var rep = LauncherApp.db.GetCollection<Repositories>("Repositories").FindById(gameID);
         var releases = release.Assets.ToList();
@@ -127,14 +162,14 @@ public static class DownloadManagerS
         {
             try
             {
-                await PartDownload(gameID, PartsGameCashDB_File, null,release, SaveDir["LibraryFolder"].AsString);
+                await PartDownload(gameID, PartsGameCashDB_File, null, release, SaveDir["LibraryFolder"].AsString, Update);
             }
             catch (Exception e)
             {
             }
         }
     }
-    private static async Task PartDownload(ObjectId GameId, List<ReleaseAsset>? AllParts, ReleaseAsset? lastDownload, Release release, string SaveDir)
+    private static async Task PartDownload(ObjectId GameId, List<ReleaseAsset>? AllParts, ReleaseAsset? lastDownload, Release release, string SaveDir, bool Update)
     {
         if (AllParts != null)
         {
@@ -151,21 +186,105 @@ public static class DownloadManagerS
                 else
                 {
                     bool stopTimer = false;
+                    bool Block = false;
                     PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
                     while (!stopTimer)
                     {
                         await timer.WaitForNextTickAsync();
-                        var gamedownloadlist = DownloadList.Where(x => x.Key.Gameid == GameId);
-                        if (gamedownloadlist != null && gamedownloadlist.Count() == gamedownloadlist.Where(x => x.Value.UnpackState == UnpackState.Completed).Count())
+                        if (!Block)
                         {
-                            await InstallFile($"{SaveDir}GameCashDB_{GameId.ToString()}.db", $"{SaveDir + GameId.ToString()}\\", GameId);
-                            var cl = LauncherApp.db.GetCollection("BrowseInfo");
-                            var id = new BsonValue(GameId);
-                            BsonDocument BrowseInfo = cl.FindById(id);
-                            BrowseInfo["GameDataUpdate"] = new BsonValue(release.PublishedAt.Value.ToUnixTimeSeconds());
-                            cl.Update(BrowseInfo);
-                            LauncherApp.AddGameId(Path.GetPathRoot(SaveDir), GameId);
-                            stopTimer = true;
+                            var gamedownloadlist = DownloadList.Where(x => x.Key.Gameid == GameId);
+                            if (gamedownloadlist != null && gamedownloadlist.Count() == gamedownloadlist.Where(x => x.Value.UnpackState == UnpackState.Completed).Count())
+                            {
+                                if (!Update)
+                                {
+                                    await InstallFile($"{SaveDir}GameCashDB_{GameId.ToString()}.db", $"{SaveDir + GameId.ToString()}\\", GameId, Update);
+                                    var cl = LauncherApp.db.GetCollection("BrowseInfo");
+                                    var id = new BsonValue(GameId);
+                                    BsonDocument BrowseInfo = cl.FindById(id);
+                                    BrowseInfo["GameDataUpdate"] = new BsonValue(release.PublishedAt.Value.ToUnixTimeSeconds());
+                                    cl.Update(BrowseInfo);
+                                    LauncherApp.AddGameId(Path.GetPathRoot(SaveDir), GameId);
+                                    var mnf = release.Assets.FirstOrDefault(x => x.Name == "manifest.txt");
+
+                                    var FileNameMNF = GameId.ToString() + ".old." + "manifest.txt";
+                                    Block = true;
+                                    var GameInfoDownload = await GitHubDownloader.Download(
+                                    mnf.BrowserDownloadUrl,
+                                    FileNameMNF,
+                                    LauncherApp.GetAppDataDir(),
+                                    (o, e) => { },
+                                    (o, e) =>
+                                    {
+
+                                        stopTimer = true;
+                                    },
+                                    (o, e) => { }
+                                    );
+
+
+                                }
+                                else
+                                {
+                                    Block = true;
+                                    BsonArray ReadManifest(string manifestPath)
+                                    {
+                                        using (StreamReader reader = new StreamReader(manifestPath))
+                                        {
+                                            var manifest = new BsonArray();
+                                            while (!reader.EndOfStream)
+                                            {
+                                                string line = reader.ReadLine();
+                                                string[] parts = line.Split('\t');
+                                                string relativePath = parts[0];
+                                                long fileSize = long.Parse(parts[1]);
+                                                string md5Sum = parts[2];
+                                                manifest.Add(new BsonDocument {
+                                            { "relativePath", relativePath },
+                                            { "fileSize", fileSize },
+                                            { "md5Sum", md5Sum }
+                                            });
+                                            }
+                                            return manifest;
+                                        }
+                                    }
+                                    var mnf = release.Assets.FirstOrDefault(x => x.Name == "manifest.txt");
+                                    var FileNameMNF = GameId.ToString() + ".new." + "manifest.txt";
+
+                                    var GameInfoDownload = await GitHubDownloader.Download(
+                                    mnf.BrowserDownloadUrl,
+                                    FileNameMNF,
+                                    LauncherApp.GetAppDataDir(),
+                                    (o, e) => { },
+                                    async (o, e) =>
+                                    {
+
+                                        var Old_MNF = ReadManifest(LauncherApp.GetAppDataDir() + GameId.ToString() + ".old." + "manifest.txt");
+                                        var New_MNF = ReadManifest(LauncherApp.GetAppDataDir() + GameId.ToString() + ".new." + "manifest.txt");
+                                        foreach (var FileInfo in Old_MNF)
+                                        {
+                                            if (New_MNF.FirstOrDefault(x => x.AsDocument["relativePath"].AsString == FileInfo.AsDocument["relativePath"].AsString)==null)
+                                            {
+                                                File.Delete($"{SaveDir + GameId.ToString()}\\{FileInfo.AsDocument["relativePath"].AsString}");
+                                            }
+                                        }
+                                        File.Delete(LauncherApp.GetAppDataDir() + GameId.ToString() + ".old." + "manifest.txt");
+                                        File.Move(LauncherApp.GetAppDataDir() + FileNameMNF, LauncherApp.GetAppDataDir() + GameId.ToString() + ".old." + "manifest.txt");
+                                        await InstallFile($"{SaveDir}GameCashDB_{GameId.ToString()}.db", $"{SaveDir + GameId.ToString()}\\", GameId, Update);
+                                        var cl = LauncherApp.db.GetCollection("BrowseInfo");
+                                        var id = new BsonValue(GameId);
+                                        BsonDocument BrowseInfo = cl.FindById(id);
+                                        BrowseInfo["GameDataUpdate"] = new BsonValue(release.PublishedAt.Value.ToUnixTimeSeconds());
+                                        cl.Update(BrowseInfo);
+                                        LauncherApp.AddGameId(Path.GetPathRoot(SaveDir), GameId);
+                                        stopTimer = true;
+                                    },
+                                    (o, e) => { }
+                                    );
+
+
+                                }
+                            }
                         }
 
                     }
@@ -206,7 +325,7 @@ new DownloadValue()
             async (o, x) =>
             {
 
-                PartDownload(GameId, AllParts, CurrentDownload,release, SaveDir);
+                PartDownload(GameId, AllParts, CurrentDownload, release, SaveDir, Update);
                 if (partDownload > 0)
                 {
                     bool stopTimer = false;
@@ -325,7 +444,7 @@ new DownloadValue()
             }
         }
     }
-    private static async Task InstallFile(string GameCashDB_Path, string PathInstall, ObjectId GameId)
+    private static async Task InstallFile(string GameCashDB_Path, string PathInstall, ObjectId GameId, bool Update)
     {
         LiteDatabase GameDB = new LiteDatabase(GameCashDB_Path);
         ILiteStorage<string> storage = GameDB.GetStorage<string>("GameFiles", "GameFileChunks");
@@ -380,7 +499,7 @@ new DownloadValue()
     /// <returns></returns>
     public static UpdateInfo CheckUpdate(ObjectId GameId)
     {
-       
+
         UpdateInfo updateInfo = new();
         try
         {
@@ -398,8 +517,8 @@ new DownloadValue()
                 var LocRepository = LauncherApp.db.GetCollection<Repositories>("Repositories").FindById(GameId);
                 var Repository_ = TorrentDownloader.client.Repository.Release.GetAll(LocRepository.User, LocRepository.Rep);
                 Repository_.Wait();
-                var CurrentReliase = Repository_.Result.FirstOrDefault(x=>x.PublishedAt.Value.ToUnixTimeSeconds() == GameDataUpdate);
-                if (CurrentReliase == null) 
+                var CurrentReliase = Repository_.Result.FirstOrDefault(x => x.PublishedAt.Value.ToUnixTimeSeconds() == GameDataUpdate);
+                if (CurrentReliase == null)
                 {
                     if (GameDataUpdate == 0)
                         updateInfo.Code = 1;//no one reliase in Repository. Owner Error
@@ -413,19 +532,20 @@ new DownloadValue()
                     updateInfo.Code = 2;
                     return updateInfo; //no one Update Game. Just Play!!!
                 }
-                else 
+                else
                 {
                     updateInfo.Code = 3;
                     updateInfo.UpdateList = NewReliases;
                     return updateInfo;//update avalible
                 }
             }
-            else {
+            else
+            {
                 updateInfo.Code = 4;
                 return updateInfo;//No info about game in App
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             updateInfo.Code = 5;
             return updateInfo;//Check Error
